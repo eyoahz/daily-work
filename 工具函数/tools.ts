@@ -26,8 +26,8 @@ function omit<T extends Record<string | number, any>, K extends keyof T>(
  * @param {Array} keys
  * @return {*}
  */
-function pick<T extends Record<string | number, any>, K extends keyof T>(obj: T, keys: Array<K>) {
-  const clone: Partial<Record<K, any>> = {};
+function pick<T extends Record<string | number, any>, K extends keyof T>(obj: T, keys: Array<K>): Partial<Pick<T, K>> {
+  const clone: Partial<Pick<T, any>> = {};
   keys.forEach((key) => {
     if (key in obj) {
       clone[key] = obj[key];
