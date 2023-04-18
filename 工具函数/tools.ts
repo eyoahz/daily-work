@@ -1,5 +1,5 @@
 /**
- * @description: 用来删除对象中不需要的属性，返回删除后对象的浅拷贝
+ * @description: 用来删除对象中不需要的属性，
  * @param {T} obj
  * @param {Array} keys
  * @return {*}
@@ -19,7 +19,13 @@ function omit<T extends Record<string | number, any>, K extends keyof T>(
   return clone;
 }
 
-// 筛选出对象中需要的属性
+//
+/**
+ * @description: 筛选出对象中需要的属性，返回由筛选出的属性组成的对象的浅拷贝
+ * @param {T} obj
+ * @param {Array} keys
+ * @return {*}
+ */
 function pick<T extends Record<string | number, any>, K extends keyof T>(obj: T, keys: Array<K>) {
   const clone: Partial<Record<K, any>> = {};
   keys.forEach((key) => {
