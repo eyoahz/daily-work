@@ -1,5 +1,5 @@
 /**
- * @description: 用来删除对象中不需要的属性，
+ * @description: 用来删除对象中不需要的属性，返回删除后对象的浅拷贝
  * @param {T} obj
  * @param {Array} keys
  * @return {*}
