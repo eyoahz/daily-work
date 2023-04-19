@@ -32,7 +32,7 @@ type errors = [
 // type test = [3, 12, '123'][number]
 
 // 第四种解法：infer（即 推断）
-type First<T extends any[]> = T extends [infer First, ...infer Rest] ? First : never;
+type First<T extends any[]> = T extends [infer First, ...any] ? First : never;
 
 // 获取元组最后一个类型
 // type MyTail<T extends unknown[]> = [any, ...T][T["length"]];
