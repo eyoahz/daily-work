@@ -25,8 +25,4 @@ type error = MyAwaited<number>;
  * 可以看出 PromiseLike 接口定义的就是一个拥有then()方法的对象（官方的叫法是 thenable），只要有then()方法就会将其当做一个Promise实例看待。
  */
 
-type MyAwaited<T extends PromiseLike<any>> = T extends PromiseLike<infer U>
-  ? U extends PromiseLike<any>
-    ? MyAwaited<U>
-    : U
-  : string;
+type MyAwaited<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? (U extends PromiseLike<any> ? MyAwaited<U> : U) : T;
