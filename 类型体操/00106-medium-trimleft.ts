@@ -19,4 +19,4 @@ type TrimLeft<S extends string> = S extends `${Space}${infer Rest}` ? TrimLeft<R
 type TrimRight<S extends string> = S extends `${infer Rest}${Space}` ? TrimRight<Rest> : S;
 
 // 去除两边的空白字符串
-type TrimBoth<S extends string> = TrimLeft<TrimRight<S>>;
+type Trim<S extends string> = TrimLeft<TrimRight<S>>;
