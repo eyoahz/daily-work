@@ -21,6 +21,9 @@ type cases = [
 
 // ============= Your Code Here =============
 
+/**
+ * 参考链接：https://juejin.cn/post/7165170011282079751
+ */
 type Permutation<All, Item = All> = [All] extends [never]
   ? []
   : Item extends Item
