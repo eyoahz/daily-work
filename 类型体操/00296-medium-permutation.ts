@@ -23,9 +23,11 @@ type cases = [
 
 /**
  * 参考链接：https://juejin.cn/post/7165170011282079751
+ *
+ * Permutation<All, Item = All> 其中 Item 是为了能使用 Item extends All 把联合类型中的每一个类型都提取出来
  */
 type Permutation<All, Item = All> = [All] extends [never]
   ? []
-  : Item extends Item
+  : Item extends All
   ? [Item, ...Permutation<Exclude<All, Item>>]
   : never;
