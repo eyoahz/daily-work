@@ -12,6 +12,6 @@ type cases = [
 // ============= Your Code Here =============
 type Flatten<T extends any[], Result extends any[] = []> = T extends [infer Head, ...infer Rest]
   ? Head extends any[]
-    ? Flatten<[...Head, ...Rest], [...Result]>
+    ? Flatten<[...Head, ...Rest], Result>
     : Flatten<Rest, [...Result, Head]>
   : Result;
