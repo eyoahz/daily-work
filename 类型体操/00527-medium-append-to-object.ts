@@ -45,5 +45,8 @@ type cases = [
 ];
 
 // ============= Your Code Here =============
-type Unite<T, U extends string, V> = { [K in U]: V } & T;
-type AppendToObject<T, U extends string, V> = { [P in keyof Unite<T, U, V>]: Unite<T, U, V>[P] };
+// 不优雅
+// type Unite<T, U extends string, V> = { [K in U]: V } & T;
+// type AppendToObject<T, U extends string, V> = { [P in keyof Unite<T, U, V>]: Unite<T, U, V>[P] };
+
+type AppendToObject<T, U extends keyof any, V> = { [K in keyof T | U]: K extends keyof T ? T[K] : V };
