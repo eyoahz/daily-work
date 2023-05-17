@@ -124,11 +124,9 @@ export default {
   },
   methods: {
     search(value) {
-      // 搜索方法
       console.log('搜索', value)
     },
     tabsChange({ index, type }) {
-      // tabs改变时触发
       if (this.currentTabs === index) return
       this.currentTabs = index
       console.log(type)
