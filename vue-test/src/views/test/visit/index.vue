@@ -128,6 +128,7 @@ export default {
       console.log('搜索', value)
     },
     tabsChange({ index, type }) {
+      // tabs改变时触发，结构出index和type
       if (this.currentTabs === index) return
       this.currentTabs = index
       console.log(type)
