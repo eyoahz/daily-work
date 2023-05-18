@@ -1,13 +1,16 @@
 <template>
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
-		<u-navbar title="客户信息" :placeholder="true" bgColor="#2989FF" :leftIcon="null" :border="false"
-			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }" />
+		<u-navbar title="客户信息" :placeholder="true" bgColor="#2989FF" :border="false"
+			autoBack
+			leftIconColor="#fff"
+			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
+		/>
 		<!-- End 顶部导航栏 -->
 
 		<view class="container">
 			<view class="search u-border-bottom">
-				<u-search placeholder="搜索客户名称或编码" actionText="搜索" @custom="search" />
+				<u-search v-model.trim="listParams.name" placeholder="搜索客户名称" actionText="搜索" @custom="search" />
 			</view>
 			<u-sticky :customNavHeight="customNavHeight">
 				<view class="tabs">
@@ -29,48 +32,58 @@
 			</u-sticky>
 			<!-- Region 列表 -->
 			<view class="list">
-				<view class="list-item" v-for="item in 6">
+				<view class="list-item" v-for="item in list" :key="item.id">
 					<view class="top  u-border-bottom">
-						<view class="top-title  u-line-1">福建省梦娇兰日用化学品有限公司</view>
-						<u-tag text="标签" bgColor="#e9f3ff" color="#2989FF" borderColor="transparent" size="mini" />
+						<view class="top-title  u-line-1">{{ item.name || '' }}</view>
+						<u-tag borderColor="transparent" size="mini"
+							:color="item.isHighSeas == '1' ? 'rgb(41, 137, 255)' : 'rgb(255, 64, 63)'"
+							:bgColor="item.isHighSeas == '1' ? 'rgb(41, 137, 255, .1)' : 'rgb(255, 64, 63, .1)'"
+							:text="item.isHighSeas == '1' ? '公海' : '非公海'"
+						/>
 					</view>
 					<view class="info">
 						<view class="info-item">
-							<text>所属团队</text>
-							<text class="u-line-1">厦门因驰销售A组</text>
+							<text>客户编码</text>
+							<text class="u-line-1">{{ item.code || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>商机数量</text>
 							<text class="u-line-1">
-								<text style="color: #2989FF;">3</text>个
+								<text style="color: #2989FF;">{{ item.opportunitiesNum || 0 }}</text>个
 							</text>
 						</view>
-						<view class="info-item">
+						<!-- <view class="info-item">
 							<text>所在省市</text>
-							<text class="u-line-1">福建漳州</text>
-						</view>
-						<view class="info-item">
+							<text class="u-line-1">{{ item.province + item.city }}</text>
+						</view> -->
+						<!-- <view class="info-item">
 							<text>所在行业</text>
-							<text class="u-line-1">食品</text>
-						</view>
+							<text class="u-line-1">{{ item.industry || '' }}</text>
+						</view> -->
 					</view>
 				</view>
 			</view>
 			<!-- End 列表 -->
+			<u-loadmore :status="loadmoreStatus" />
 		</view>
 
 		<view class="footer">
-			<u-button text="新增客户" shape="circle" color="#2989FF" :customStyle="{
-				margin: 0,
-				marginLeft: 'auto',
-				width: '200rpx',
-				height: '80rpx'
-			}"></u-button>
+			<u-button text="新增客户" shape="circle" color="#2989FF" 
+				:customStyle="{
+					margin: 0,
+					marginLeft: 'auto',
+					width: '200rpx',
+					height: '80rpx'
+				}"
+				@click="toTypein"
+			></u-button>
 		</view>
 	</view>
 </template>
 
 <script>
+	import { getCustomPage } from "@/common/api/customer.js";
+	
 	export default {
 		data() {
 			return {
@@ -78,18 +91,43 @@
 				currentTabs: 0,
 				tabsList: [{
 						name: '全部',
-						type: '全部',
+						type: '',
 					},
 					{
 						name: '公海客户',
-						type: '公海',
+						type: '1',
 					},
 					{
 						name: '非公海客户',
-						type: '非公海',
+						type: '0',
 					},
 				],
+				listParams: {
+					pageNum: 1,
+					pageSize: 10,
+					name: '',
+					code: '',
+					isHighSeas: '',
+				},
+				isLast: false,
+				loadmoreStatus: 'loadmore',
+				list: [],
 			}
+		},
+		onLoad() {
+			this.getList({});
+		},
+		/* 下拉刷新 */
+		async onPullDownRefresh() {
+			this.init();
+			await this.getList(this.listParams);;
+			uni.stopPullDownRefresh();
+		},
+		/* 触底 */
+		async onReachBottom() {
+			if(this.isLast) return;
+			this.listParams.pageNum++;
+			await this.getList(this.listParams);
 		},
 		mounted() {
 			const query = uni.createSelectorQuery().in(this);
@@ -97,11 +135,17 @@
 				this.customNavHeight = data?.top;
 			}).exec();
 		},
-		onReachBottom() {
-			console.log('触底');
-		},
 		methods: {
+			/* 列表初始化 */
+			init() {
+				this.listParams.pageNum = 1;
+				this.isLast = false;
+				this.list = [];
+			},
 			search(value) {
+				this.init();
+				this.listParams.name = value;
+				this.getList(this.listParams);
 				console.log('搜索', value);
 			},
 			tabsChange({
@@ -109,8 +153,52 @@
 				type
 			}) {
 				if (this.currentTabs === index) return;
+				this.init();
 				this.currentTabs = index;
-				console.log(type);
+				this.listParams.isHighSeas = type;
+				this.getList(this.listParams);
+			},
+			async getList({
+					pageNum = 1,
+					pageSize = 10,
+					name = '',
+					code = '',
+					isHighSeas = '',
+			}) {
+				try{
+					this.loadmoreStatus = 'loading';
+					const params = {
+						pageNum,
+						pageSize,
+						name,
+						code,
+						isHighSeas
+					}
+					let { rows: data, total } = await getCustomPage(params);
+					total ??= 0;
+					data ??= [];
+					this.list.push(...data);
+					if(pageNum * pageSize >= total) {
+						this.loadmoreStatus = 'nomore';
+						this.isLast = true;
+						return;
+					}
+					this.loadmoreStatus = 'loadmore';
+				}catch(err){
+					uni.$u.toast(err);
+					this.loadmoreStatus = 'loadmore';
+				}
+			},
+			toTypein() {
+				uni.navigateTo({
+					url: '/pages/sub/customer/information/typein/index',
+					events: {
+						init: () => {
+							this.init();
+							this.getList(this.listParams);
+						}
+					}
+				})
 			}
 		}
 	}
