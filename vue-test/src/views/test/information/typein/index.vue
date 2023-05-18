@@ -1,8 +1,11 @@
 <template>
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
-		<u-navbar title="录入客户信息" :placeholder="true" bgColor="#2989FF" :leftIcon="null" :border="false"
-			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }" />
+		<u-navbar title="录入客户信息" :placeholder="true" bgColor="#2989FF" :border="false"
+			leftIconColor="#fff"
+			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
+			@leftClick="historyBaCK"
+		/>
 		<!-- End 顶部导航栏 -->
 		
 		<view class="container">
@@ -66,6 +69,42 @@
 							suffixIcon="arrow-down"
 							readonly
 							@tap="show.scale = true"
+						/>
+					</u-form-item>
+					<u-form-item
+						label="所属团队"
+						prop="customerInfo.teamIdLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.teamIdLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap=""
+						/>
+					</u-form-item>
+					<u-form-item
+						label="所属大区"
+						prop="customerInfo.regionIdLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.regionIdLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap=""
+						/>
+					</u-form-item>
+					<u-form-item
+						label="客户等级"
+						prop="customerInfo.gradeIdLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.gradeIdLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap=""
 						/>
 					</u-form-item>
 					<u-form-item
@@ -172,7 +211,7 @@
 			closeOnClickOverlay
 			@close="show.battlefield = false"
 			@cancel="show.battlefield = false"
-			@confirm="battlefieldConfirm"
+			@confirm="(e) => dictConfirm(e, 'battlefieldLabel', 'battlefield')"
 		></u-picker>
 		<!-- End 战场 -->
 		
@@ -182,7 +221,7 @@
 			closeOnClickOverlay
 			@close="show.industry = false"
 			@cancel="show.industry = false"
-			@confirm="industryConfirm"
+			@confirm="(e) => dictConfirm(e, 'industryLabel', 'industry')"
 		></u-picker>
 		<!-- End 所属行业 -->
 		
@@ -192,7 +231,7 @@
 			closeOnClickOverlay
 			@close="show.enterpriseType = false"
 			@cancel="show.enterpriseType = false"
-			@confirm="enterpriseTypeConfirm"
+			@confirm="(e) => dictConfirm(e, 'enterpriseTypeLabel', 'enterpriseType')"
 		></u-picker>
 		<!-- End 企业类型 -->
 		
@@ -202,7 +241,7 @@
 			closeOnClickOverlay
 			@close="show.scale = false"
 			@cancel="show.scale = false"
-			@confirm="scaleConfirm"
+			@confirm="(e) => dictConfirm(e, 'scaleLabel', 'scale')"
 		></u-picker>
 		<!-- End 企业规模 -->
 		
@@ -233,14 +272,15 @@
 </template>
 
 <script>
-import getDict from '@/common/api/user.js';
+import { getDict } from '@/common/api/user.js';
+import { insertCustom } from '@/common/api/customer.js'
 	
 export default {
 	data() {
 		return {
 			uFormModel: {
 				customerInfo: {
-					name: "",
+					name: "测试",
 					battlefieldLabel: "",	// 战场label
 					battlefield: "",	// 战场value
 					industryLabel: "",	// 所属行业label
@@ -249,13 +289,19 @@ export default {
 					enterpriseType: "",	// 企业类型value
 					scaleLabel: "",	// 企业规模label
 					scale: "",	// 企业规模value
-					unifiedSocialCreditCode: "",
-					province: "",
-					city: "",
-					officeAddress: "",
-					companyRegisteredAddress: "",
-					operator: "",
-					source: "",
+					teamIdLabel: "",	// 所属团队label
+					teamId: "",	// 所属团队value
+					regionIdLabel: "",	// 所属大区label
+					regionId: "",	// 所属大区value
+					gradeIdLabel: "",	// 客户等级label
+					gradeId: "",	// 客户等级value
+					unifiedSocialCreditCode: "CSH208421831535140",
+					province: "福建省",
+					city: "厦门市",
+					officeAddress: "淮海路小猪佩奇有限公司",
+					companyRegisteredAddress: "淮海路小猪佩奇有限公司",
+					operator: "西门庆",
+					source: "武大郎",
 					firstSigningYearLabel: "",	// 首次签约年Label
 					firstSigningYear: Number(new Date()),	// 首次签约年value
 					informationInfrastructureStatus: "",
@@ -276,12 +322,84 @@ export default {
 						message: '请选择战场',
 						trigger: ['blur', 'change']
 					},
-					'customerInfo.battlefield': {
+					'customerInfo.industryLabel': {
 						type: 'string',
 						required: true,
-						message: '请填写客户名称',
+						message: '请选择所属行业',
 						trigger: ['blur', 'change']
 					},
+					'customerInfo.enterpriseTypeLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择企业类型',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.scaleLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择企业规模',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.unifiedSocialCreditCode': {
+						type: 'string',
+						required: true,
+						message: '请填写统一社会信用代码',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.province': {
+						type: 'string',
+						required: true,
+						message: '请选所在省',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.city': {
+						type: 'string',
+						required: true,
+						message: '请选择所在市',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.officeAddress': {
+						type: 'string',
+						required: true,
+						message: '请填写办公地址',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.companyRegisteredAddress': {
+						type: 'string',
+						required: true,
+						message: '请填写注册地址',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.operator': {
+						type: 'string',
+						required: true,
+						message: '请填写客户经营人',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.source': {
+						type: 'string',
+						required: true,
+						message: '请填写信息来源',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.firstSigningYearLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择首次签约年',
+						trigger: ['blur', 'change']
+					},
+					// 'customerInfo.informationInfrastructureStatus': {
+					// 	type: 'string',
+					// 	required: true,
+					// 	message: '请填写信息化基础设施状况',
+					// 	trigger: ['blur', 'change']
+					// },
+					// 'customerInfo.description': {
+					// 	type: 'string',
+					// 	required: true,
+					// 	message: '请填写描述',
+					// 	trigger: ['blur', 'change']
+					// },
 				},
 			},
 			show: {
@@ -301,29 +419,19 @@ export default {
 	},
 	onLoad() {
 		console.log('请求客户详情，非新增客户情况下');
-		getDict('crm_zc').then(res => {
-			this.columns.battlefield[0] = (res ?? []).reduce((arr, cur) => {
-				arr.push({ label: cur.dictLabel, value: cur.dictValue })
-				return arr;
-			}, [])
+		uni.showLoading({
+			title: '加载中',
+			mask: true,
 		})
-		getDict('crm_hy').then(res => {
-			this.columns.industry[0] = (res ?? []).reduce((arr, cur) => {
-				arr.push({ label: cur.dictLabel, value: cur.dictValue })
-				return arr;
-			}, [])
-		})
-		getDict('crm_qylx').then(res => {
-			this.columns.enterpriseType[0] = (res ?? []).reduce((arr, cur) => {
-				arr.push({ label: cur.dictLabel, value: cur.dictValue })
-				return arr;
-			}, [])
-		})
-		getDict('crm_qygm').then(fun => {
-			this.columns.scale[0] = (res ?? []).reduce((arr, cur) => {
-				arr.push({ label: cur.dictLabel, value: cur.dictValue })
-				return arr;
-			}, [])
+		this.dictPickerPromise().then(res => {
+			const [crm_zc, crm_hy, crm_qylx, crm_qygm] = res;
+			this.columns.battlefield[0] = crm_zc;
+			this.columns.industry[0] = crm_hy;
+			this.columns.enterpriseType[0] = crm_qylx;
+			this.columns.scale[0] = crm_qygm;
+			uni.hideLoading();
+		}).catch(err => {
+			uni.$u.toast(err);
 		})
 	},
 	onReady() {
@@ -333,25 +441,37 @@ export default {
 		search() {
 			console.log('搜索');
 		},
-		battlefieldConfirm({ value: [{ label, value }] }) {
-			this.show.battlefield = false;
-			this.uFormModel.customerInfo.battlefieldLabel = label ?? '';
-			this.uFormModel.customerInfo.battlefield = value ?? '';
+		dictExtract(dictArr) {
+			return (dictArr ?? []).reduce((arr, cur) => {
+				arr.push({ label: cur.dictLabel, value: cur.dictValue })
+				return arr;
+			}, [])
 		},
-		industryConfirm({ value: [{ label, value }] }) {
-			this.show.industry = false;
-			this.uFormModel.customerInfo.industryLabel = label ?? '';
-			this.uFormModel.customerInfo.industry = value ?? '';
+		dictPickerPromise() {
+			return new Promise((resolve, reject) => {
+				const crm_zc = getDict('crm_zc');
+				const crm_hy = getDict('crm_hy');
+				const crm_qylx = getDict('crm_qylx');
+				const crm_qygm = getDict('crm_qygm');
+				Promise.all([crm_zc, crm_hy, crm_qylx, crm_qygm])
+					.then(res => {
+						const [crm_zc, crm_hy, crm_qylx, crm_qygm] = res;
+						resolve([
+							this.dictExtract(crm_zc),
+							this.dictExtract(crm_hy),
+							this.dictExtract(crm_qylx),
+							this.dictExtract(crm_qygm)
+						])
+					})
+					.catch(err => {
+						reject(err);
+					})
+			})
 		},
-		enterpriseTypeConfirm({ value: [{ label, value }] }) {
-			this.show.enterpriseType = false;
-			this.uFormModel.customerInfo.enterpriseTypeLabel = label ?? '';
-			this.uFormModel.customerInfo.enterpriseType = value ?? '';
-		},
-		scaleConfirm({ value: [{ label, value }] }) {
-			this.show.scale = false;
-			this.uFormModel.customerInfo.scaleLabel = label ?? '';
-			this.uFormModel.customerInfo.scale = value ?? '';
+		dictConfirm({ value: [{ label, value }] }, fieldLabel, field) {
+			this.show[field] = false;
+			this.uFormModel.customerInfo[fieldLabel] = label ?? '';
+			this.uFormModel.customerInfo[field] = value ?? '';
 		},
 		firstSigningYearConfirm({ value }) {
 			this.show.firstSigningYear = false;
@@ -366,13 +486,24 @@ export default {
 					title: '提交中',
 					mask: true,
 				})
-				const res = await this.$refs.uForm.validate()
-				uni.$u.toast('校验通过');
-			}catch(e){
-				uni.$u.toast('校验失败');
-			}finally {
-				uni.hideLoading();
+				const res = await this.$refs.uForm.validate();
+				await insertCustom(this.uFormModel.customerInfo);
+				uni.$u.toast('提交成功');
+				setTimeout(() => {
+					uni.navigateBack();
+				}, 500)
+			}catch(err){
+				if(Array.isArray(err)) return uni.$u.toast(err[0]?.message ?? '校验失败111');
+				uni.$u.toast(err);
 			}
+		},
+		historyBaCK() {
+			const eventChannel = this.getOpenerEventChannel();
+			uni.navigateBack({
+				success() {
+					eventChannel.emit('init')
+				}
+			})
 		}
 	}
 }
