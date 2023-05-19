@@ -2,9 +2,9 @@
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
 		<u-navbar title="录入客户信息" :placeholder="true" bgColor="#2989FF" :border="false"
+			autoBack
 			leftIconColor="#fff"
 			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
-			@leftClick="historyBaCK"
 		/>
 		<!-- End 顶部导航栏 -->
 		
@@ -80,7 +80,7 @@
 							v-model="uFormModel.customerInfo.teamIdLabel"
 							suffixIcon="arrow-down"
 							readonly
-							@tap=""
+							@tap="show.teamId = true"
 						/>
 					</u-form-item>
 					<u-form-item
@@ -92,7 +92,7 @@
 							v-model="uFormModel.customerInfo.regionIdLabel"
 							suffixIcon="arrow-down"
 							readonly
-							@tap=""
+							@tap="show.regionId = true"
 						/>
 					</u-form-item>
 					<u-form-item
@@ -104,7 +104,7 @@
 							v-model="uFormModel.customerInfo.gradeIdLabel"
 							suffixIcon="arrow-down"
 							readonly
-							@tap=""
+							@tap="show.gradeId = true"
 						/>
 					</u-form-item>
 					<u-form-item
@@ -245,6 +245,39 @@
 		></u-picker>
 		<!-- End 企业规模 -->
 		
+		<!-- Region 所属团队 -->
+		<u-picker :show="show.teamId" :columns="columns.teamId"
+			keyName="label"
+			closeOnClickOverlay
+			@close="show.teamId = false"
+			@cancel="show.teamId = false"
+			@confirm="(e) => dictConfirm(e, 'teamIdLabel', 'teamId')"
+		></u-picker>
+		<!-- End 所属团队 -->
+		
+		<!-- Region 所属大区 -->
+		<picker-tree  
+			:show="show.regionId"
+			ref="regionId"
+			keyName="name"
+			closeOnClickOverlay
+			:treeData="regionTree"
+			@close="show.regionId = false"
+			@cancel="show.regionId = false"
+			@confirm="(e) => regionIdConfirm(e, 'regionIdLabel', 'regionId')"
+		></picker-tree>
+		<!-- End 所属大区 -->
+		
+		<!-- Region 客户等级 -->
+		<u-picker :show="show.gradeId" :columns="columns.gradeId"
+			keyName="label"
+			closeOnClickOverlay
+			@close="show.gradeId = false"
+			@cancel="show.gradeId = false"
+			@confirm="(e) => dictConfirm(e, 'gradeIdLabel', 'gradeId')"
+		></u-picker>
+		<!-- End 客户等级 -->
+		
 		<!-- Region 首次签约年 -->
 		<u-datetime-picker
 			:show="show.firstSigningYear"
@@ -273,9 +306,11 @@
 
 <script>
 import { getDict } from '@/common/api/user.js';
-import { insertCustom } from '@/common/api/customer.js'
+import { insertCustom, getTeamList, getRegionList, getCustomGradeList } from '@/common/api/customer.js'
+import PickerTree from './components/picker-tree.vue'
 	
 export default {
+	components: { PickerTree },
 	data() {
 		return {
 			uFormModel: {
@@ -338,6 +373,24 @@ export default {
 						type: 'string',
 						required: true,
 						message: '请选择企业规模',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.teamIdLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择所属团队',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.regionIdLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择所属大区',
+						trigger: ['blur', 'change']
+					},
+					'customerInfo.gradeIdLabel': {
+						type: 'string',
+						required: true,
+						message: '请选择客户等级',
 						trigger: ['blur', 'change']
 					},
 					'customerInfo.unifiedSocialCreditCode': {
@@ -407,6 +460,9 @@ export default {
 				industry: false,
 				enterpriseType: false,
 				scale: false,
+				teamId: false,
+				regionId: false,
+				gradeId: false,
 				firstSigningYear: false
 			},
 			columns: {
@@ -414,21 +470,29 @@ export default {
 				industry: [[]],
 				enterpriseType: [[]],
 				scale: [[]],
+				teamId: [[]],
+				regionId: [],
+				gradeId: [[]],
 			},
+			regionTree: [],	// 大区树形原始数据
+			regionMap: new Map(), // 扁平化大区Map数据
 		}
 	},
 	onLoad() {
-		console.log('请求客户详情，非新增客户情况下');
+		console.log('非新增客户情况下需请求客户详情');
 		uni.showLoading({
 			title: '加载中',
 			mask: true,
 		})
 		this.dictPickerPromise().then(res => {
-			const [crm_zc, crm_hy, crm_qylx, crm_qygm] = res;
+			const [crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList] = res;
 			this.columns.battlefield[0] = crm_zc;
 			this.columns.industry[0] = crm_hy;
 			this.columns.enterpriseType[0] = crm_qylx;
 			this.columns.scale[0] = crm_qygm;
+			this.columns.teamId[0] = teamList;
+			this.columns.gradeId[0] = customGradeList;
+			this.handleRegionTree(regionList);
 			uni.hideLoading();
 		}).catch(err => {
 			uni.$u.toast(err);
@@ -441,11 +505,40 @@ export default {
 		search() {
 			console.log('搜索');
 		},
-		dictExtract(dictArr) {
-			return (dictArr ?? []).reduce((arr, cur) => {
+		dictExtract(initialArr) {
+			return (initialArr ?? []).reduce((arr, cur) => {
 				arr.push({ label: cur.dictLabel, value: cur.dictValue })
 				return arr;
 			}, [])
+		},
+		defaultExtract(initialArr) {
+			return (initialArr ?? []).reduce((arr, cur) => {
+				arr.push({ label: cur.name, value: cur.id })
+				return arr;
+			}, [])
+		},
+		/* 处理大区树 */
+		handleRegionTree(tree = []) {
+			this.regionTree = tree;
+			
+			// 扁平化
+			const treeFlat = (data = [], column = 0) => {
+				data.forEach((item, index) => {
+					if(item.parentId == 0) column = 0;
+					this.regionMap.set(item.id, { ...item, column, index })
+					if(Array.isArray(item.children)) {
+						treeFlat(item.children, ++column);
+					} 
+				})
+			}
+			treeFlat(tree);
+		},
+		// 大区确认
+		regionIdConfirm({ value = [] }, fieldLabel, field) {
+			this.show[field] = false;
+			const { name, id } = value[value.length - 1];
+			this.uFormModel.customerInfo[fieldLabel] = name ?? '';
+			this.uFormModel.customerInfo[field] = id ?? '';
 		},
 		dictPickerPromise() {
 			return new Promise((resolve, reject) => {
@@ -453,14 +546,20 @@ export default {
 				const crm_hy = getDict('crm_hy');
 				const crm_qylx = getDict('crm_qylx');
 				const crm_qygm = getDict('crm_qygm');
-				Promise.all([crm_zc, crm_hy, crm_qylx, crm_qygm])
+				const teamList = getTeamList();
+				const customGradeList = getCustomGradeList();
+				const regionList = getRegionList();
+				Promise.all([crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList])
 					.then(res => {
-						const [crm_zc, crm_hy, crm_qylx, crm_qygm] = res;
+						const [crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList] = res;
 						resolve([
 							this.dictExtract(crm_zc),
 							this.dictExtract(crm_hy),
 							this.dictExtract(crm_qylx),
-							this.dictExtract(crm_qygm)
+							this.dictExtract(crm_qygm),
+							this.defaultExtract(teamList),
+							this.defaultExtract(customGradeList),
+							regionList
 						])
 					})
 					.catch(err => {
@@ -480,8 +579,8 @@ export default {
 		},
 		// * 提交表单
 		async submit() {
-			console.log('提交表单');
 			try{
+				const eventChannel = this.getOpenerEventChannel();
 				uni.showLoading({
 					title: '提交中',
 					mask: true,
@@ -490,21 +589,17 @@ export default {
 				await insertCustom(this.uFormModel.customerInfo);
 				uni.$u.toast('提交成功');
 				setTimeout(() => {
-					uni.navigateBack();
+					uni.navigateBack({
+						success() {
+							eventChannel.emit('init')
+						}
+					})
 				}, 500)
 			}catch(err){
-				if(Array.isArray(err)) return uni.$u.toast(err[0]?.message ?? '校验失败111');
+				if(Array.isArray(err)) return uni.$u.toast(err[0]?.message ?? '校验失败');
 				uni.$u.toast(err);
 			}
 		},
-		historyBaCK() {
-			const eventChannel = this.getOpenerEventChannel();
-			uni.navigateBack({
-				success() {
-					eventChannel.emit('init')
-				}
-			})
-		}
 	}
 }
 </script>
