@@ -61,10 +61,10 @@ export default {
             default: uni.$u.props.picker.closeOnClickOverlay
         },
         // 各列的默认索引
-        defaultIndex: {
-            type: Array,
-            default: uni.$u.props.picker.defaultIndex
-        },
+        // defaultIndex: {
+        //     type: Array,
+        //     default: uni.$u.props.picker.defaultIndex
+        // },
 				// 是否在手指松开时立即触发 change 事件。若不开启则会在滚动动画结束后触发 change 事件，只在微信2.21.1及以上有效
 				immediateChange: {
 					type: Boolean,
@@ -74,6 +74,11 @@ export default {
 				treeData: {
 					type: Array,
 					default: () => []
-				}
+				},
+				// 筛选数据的唯一标识
+				// code: {
+				// 	type: [String, Number],
+				// 	default: ''
+				// }
     }
 }
