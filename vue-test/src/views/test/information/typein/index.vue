@@ -471,7 +471,7 @@ export default {
 				enterpriseType: [[]],
 				scale: [[]],
 				teamId: [[]],
-				regionId: [],
+				// regionId: [],
 				gradeId: [[]],
 			},
 			regionTree: [],	// 大区树形原始数据
@@ -492,7 +492,8 @@ export default {
 			this.columns.scale[0] = crm_qygm;
 			this.columns.teamId[0] = teamList;
 			this.columns.gradeId[0] = customGradeList;
-			this.handleRegionTree(regionList);
+			this.regionTree = regionList;
+			// this.handleRegionTree(regionList);
 			uni.hideLoading();
 		}).catch(err => {
 			uni.$u.toast(err);
@@ -500,6 +501,9 @@ export default {
 	},
 	onReady() {
 		this.$refs.uForm.setRules(this.uFormRules.customerInfo)
+		setTimeout(() => {
+			this.$refs.regionId.changeColumns()
+		}, 10000)
 	},
 	methods: {
 		search() {
@@ -518,7 +522,7 @@ export default {
 			}, [])
 		},
 		/* 处理大区树 */
-		handleRegionTree(tree = []) {
+		/* handleRegionTree(tree = []) {
 			this.regionTree = tree;
 			
 			// 扁平化
@@ -532,7 +536,7 @@ export default {
 				})
 			}
 			treeFlat(tree);
-		},
+		}, */
 		// 大区确认
 		regionIdConfirm({ value = [] }, fieldLabel, field) {
 			this.show[field] = false;
