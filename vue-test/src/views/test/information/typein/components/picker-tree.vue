@@ -57,7 +57,9 @@ export default {
 	data() {
 		return {
 			columns: [], // 每一列数据  [[第1列], [第2列], [第3列]]
+			defaultIndex: [], // 各列的默认索引
 			tree: [],
+			treeFlatMap: new Map(),		// tree 的扁平化Map数据
 		}
 	},
 	mounted() {
@@ -68,6 +70,18 @@ export default {
 			if(Array.isArray(data[0].children)) initial(data[0].children);
 		}
 		initial(this.tree);
+		
+		// 扁平化
+		const treeFlat = (data = [], column = 0) => {
+			data.forEach((item, index) => {
+				if(item.parentId == 0) column = 0;
+				this.treeFlatMap.set(item.id, { ...item, column, index })
+				if(Array.isArray(item.children)) {
+					treeFlat(item.children, ++column);
+				} 
+			})
+		}
+		treeFlat(this.tree);
 	},
 	methods: {
 		pcikerTreeClose() {
@@ -86,7 +100,7 @@ export default {
 				values, // values为当前变化列的数组内容
 				index,
 				// 微信小程序无法将picker实例传出来，只能通过ref操作
-				picker = this.$refs.regionId
+				picker = this.$refs.pickerTree
 			} = e;
 			// 当某一列变化时，改变其后一列对应的选项
 			// value[columnIndex] 当前变化项
@@ -101,8 +115,22 @@ export default {
 		},
 		/* 用于改变 columns			对象数组，设置每一列的数据 */
 		changeColumns(columns) {
-			this.columns = columns;
-			console.log(columns, 1234);
+			if(columns) return this.columns = columns;
+			const code = this.code;
+			this.columns.splice(0);
+			// this.columns.unshift(this.treeFlatMap.get)
+			const setColumns = (code) => {
+				const { parenetId, index } = this.treeFlatMap.get(code);	// 获取父id以及在当前列中的位置索引
+				const parent = this.treeFlatMap.get(parenetId);	// 获取父元素
+				this.columns.unshift(parent.children);	// 压入code所在的父元素的children
+				this.defaultIndex.unshift(index);		// 压入code所在元素在当前列的位置
+				if(parent.parenetId > 0) {
+					setColumns(parent.id);
+				} else {
+					this.columns.unshift(this.tree);
+				}
+			}
+			// setColumns()
 		}
 	}
 }
