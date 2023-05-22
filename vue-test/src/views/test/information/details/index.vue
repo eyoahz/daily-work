@@ -1,8 +1,11 @@
 <template>
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
-		<u-navbar title="客户详情" :placeholder="true" bgColor="#2989FF" :leftIcon="null" :border="false"
-			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }" />
+		<u-navbar title="客户详情" :placeholder="true" bgColor="#2989FF"  :border="false"
+			autoBack
+			leftIconColor="#fff"
+			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
+		/>
 		<!-- End 顶部导航栏 -->
 
 		<view class="container">
@@ -29,7 +32,7 @@
 			</u-sticky>
 			<!-- Region 列表 -->
 			<view v-show="currentTabs === 0">
-				<customer-info />
+				<customer-info :keyId="id" />
 			</view>
 			<view v-show="currentTabs === 1">
 				<visit-list />
@@ -47,6 +50,7 @@
 	import CustomerInfo from "./components/customer-info.vue"
 	import VisitList from "./components/visit-list.vue"
 	import BusinessList from "./components/business-list.vue"
+	import { getCustomDetail } from '@/common/api/customer.js'
 
 	export default {
 		components: {
@@ -71,16 +75,20 @@
 						type: '商机记录',
 					},
 				],
+				id: '',	// 用户id
 			}
+		},
+		onLoad({ id }) {
+			this.id = id;
+		},
+		onReachBottom() {
+			console.log('触底');
 		},
 		mounted() {
 			const query = uni.createSelectorQuery().in(this);
 			query.select('.container').boundingClientRect(data => {
 				this.customNavHeight = data?.top;
 			}).exec();
-		},
-		onReachBottom() {
-			console.log('触底');
 		},
 		methods: {
 			search(value) {
