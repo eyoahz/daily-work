@@ -32,7 +32,9 @@
 			</u-sticky>
 			<!-- Region 列表 -->
 			<view class="list">
-				<view class="list-item" v-for="item in list" :key="item.id">
+				<view class="list-item" v-for="item in list" :key="item.id" 
+					@tap="$u.route('/pages/sub/customer/information/details/index', { id: item.id })"
+				>
 					<view class="top  u-border-bottom">
 						<view class="top-title  u-line-1">{{ item.name || '' }}</view>
 						<u-tag borderColor="transparent" size="mini"
@@ -193,7 +195,7 @@
 				uni.navigateTo({
 					url: '/pages/sub/customer/information/typein/index',
 					events: {
-						init: () => {
+						initial: () => {
 							this.init();
 							this.getList(this.listParams);
 						}
@@ -234,7 +236,7 @@
 			.top {
 				display: flex;
 				justify-content: space-between;
-				padding: 46rpx 4rpx;
+				padding: 20rpx 4rpx;
 
 				&-title {
 					font-size: 28rpx;
