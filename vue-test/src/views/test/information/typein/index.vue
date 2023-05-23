@@ -10,7 +10,7 @@
 		
 		<view class="container">
 			<view v-if="!id" class="search u-border-bottom">
-				<u-search placeholder="搜索企业名称" actionText="搜索" @custom="search" />
+				<u-search placeholder="请输入完整企业名称" actionText="搜索" @custom="search" />
 			</view>
 			<view class="form">
 				<u--form ref="uForm" :model="uFormModel" labelPosition="top" labelWidth="auto">
@@ -99,7 +99,7 @@
 					>
 						<u--input
 							v-model="uFormModel.customerInfo.unifiedSocialCreditCode"
-							:disabled="id ? true : false"
+							disabled
 						/>
 					</u-form-item>
 					<u-form-item
@@ -281,7 +281,7 @@ export default {
 	components: { PickerTree },
 	data() {
 		return {
-			id: '',
+			id: '', // 客户id
 			uFormModel: {
 				customerInfo: {
 					name: "",
@@ -469,10 +469,28 @@ export default {
 	},
 	methods: {
 		async search(value) {
-			const param = uni.$u.trim(value, 'all');
-			if(!param) return uni.$u.toast('请输入企业名称')
-			const res = await getTyc(uni.$u.trim(value, 'all'));
-			console.log('搜索', res);
+			try{
+				uni.showLoading({
+					title: '加载中',
+					mask: true
+				})
+				const param = uni.$u.trim(value, 'all');
+				if(!param) return uni.$u.toast('请输入企业名称');
+				const res = await getTyc(uni.$u.trim(value, 'all'));
+				Object.assign(this.uFormModel.customerInfo, {
+					...(res || {}),
+					name: res?.name,
+					enterpriseType: res?.companyOrgType,
+					scale: res?.staffNumRange,
+					unifiedSocialCreditCode: res?.creditCode,
+					province: res?.base,
+					officeAddress: res?.regLocation,
+					companyRegisteredAddress: res?.regLocation,
+				})
+				uni.hideLoading();
+			}catch(err){
+				uni.$u.toast(err);
+			}
 		},
 		/* 获取详情 */
 		async getDetail(id) {
@@ -557,9 +575,19 @@ export default {
 					mask: true,
 				})
 				const res = await this.$refs.uForm.validate();
-				await insertCustom({ ...this.uFormModel.customerInfo });
+				await insertCustom({ 
+					...this.uFormModel.customerInfo,
+					firstSigningYear: uni.$u.timeFormat(this.uFormModel.customerInfo.firstSigningYear, 'yyyy-mm-dd')
+				});
 				uni.$u.toast('提交成功');
+				const preRouter = getCurrentPages()?.slice(-2);
 				setTimeout(() => {
+					if(preRouter?.[0]?.route == 'pages/main/home/index') {
+						uni.redirectTo({
+							url: '/pages/sub/customer/information/index'
+						});
+						return;
+					}
 					uni.navigateBack({
 						success() {
 							eventChannel.emit('initial')
