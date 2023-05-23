@@ -32,13 +32,13 @@
 			</u-sticky>
 			<!-- Region 列表 -->
 			<view v-show="currentTabs === 0">
-				<customer-info :keyId="id" />
+				<customer-info ref="customerInfo" :keyId="user.id" />
 			</view>
 			<view v-show="currentTabs === 1">
-				<visit-list />
+				<visit-list ref="visitList" :code="user.code"/>
 			</view>
 			<view v-show="currentTabs === 2">
-				<business-list />
+				<business-list ref="businessList" :code="user.code"/>
 			</view>
 			<!-- End 列表 -->
 		</view>
@@ -75,14 +75,52 @@
 						type: '商机记录',
 					},
 				],
-				id: '',	// 用户id
+				user: {
+					id: '',	// 用户id
+					code: '',	// 用户编码
+				}
 			}
 		},
-		onLoad({ id }) {
-			this.id = id;
+		onLoad({ id, code }) {
+			this.user.id = id;
+			this.user.code = code;
+			console.log(this.user, 7777);
 		},
+		/* 下拉刷新 */
+		async onPullDownRefresh() {
+			try {
+				uni.showLoading({
+					title: '加载中',
+					mask: true,
+				})
+				switch (this.currentTabs) {
+					case 0:
+						await this.$refs.customerInfo.refresh();
+						break;
+					case 1:
+						await this.$refs.visitList.refresh();
+						break;
+					case 2:
+						await this.$refs.businessList.refresh();
+						break;
+				}
+				uni.hideLoading();
+			}catch(err) {
+				uni.$u.toast(err);
+			} finally {
+				uni.stopPullDownRefresh();
+			}
+		},
+		/* 触底 */
 		onReachBottom() {
-			console.log('触底');
+			switch (this.currentTabs) {
+				case 1:
+					this.$refs.visitList.reachBottom();
+					break;
+				case 2:
+					this.$refs.businessList.reachBottom();
+					break;
+			}
 		},
 		mounted() {
 			const query = uni.createSelectorQuery().in(this);
@@ -91,16 +129,15 @@
 			}).exec();
 		},
 		methods: {
-			search(value) {
+			/* search(value) {
 				console.log('搜索', value);
-			},
+			}, */
 			tabsChange({
 				index,
 				type
 			}) {
 				if (this.currentTabs === index) return;
 				this.currentTabs = index;
-				console.log(type);
 			}
 		}
 	}

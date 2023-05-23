@@ -10,7 +10,7 @@
 
 		<view class="container">
 			<view class="search u-border-bottom">
-				<u-search v-model.trim="listParams.name" placeholder="搜索客户名称" actionText="搜索" @custom="search" />
+				<u-search v-model="listParams.searchValue" placeholder="搜索客户名称或编码" actionText="搜索" @custom="search" />
 			</view>
 			<u-sticky :customNavHeight="customNavHeight">
 				<view class="tabs">
@@ -33,7 +33,7 @@
 			<!-- Region 列表 -->
 			<view class="list">
 				<view class="list-item" v-for="item in list" :key="item.id" 
-					@tap="$u.route('/pages/sub/customer/information/details/index', { id: item.id })"
+					@tap="$u.route('/pages/sub/customer/information/details/index', { id: item.id, code: item.code })"
 				>
 					<view class="top  u-border-bottom">
 						<view class="top-title  u-line-1">{{ item.name || '' }}</view>
@@ -49,15 +49,15 @@
 							<text class="u-line-1">{{ item.code || '' }}</text>
 						</view>
 						<view class="info-item">
+							<text>所属团队</text>
+							<text class="u-line-1">{{ item.teamName || '' }}</text>
+						</view>
+						<view class="info-item">
 							<text>商机数量</text>
 							<text class="u-line-1">
 								<text style="color: #2989FF;">{{ item.opportunitiesNum || 0 }}</text>个
 							</text>
 						</view>
-						<!-- <view class="info-item">
-							<text>所在省市</text>
-							<text class="u-line-1">{{ item.province + item.city }}</text>
-						</view> -->
 						<!-- <view class="info-item">
 							<text>所在行业</text>
 							<text class="u-line-1">{{ item.industry || '' }}</text>
@@ -107,8 +107,7 @@
 				listParams: {
 					pageNum: 1,
 					pageSize: 10,
-					name: '',
-					code: '',
+					searchValue: '',
 					isHighSeas: '',
 				},
 				isLast: false,
@@ -117,7 +116,7 @@
 			}
 		},
 		onLoad() {
-			this.getList({});
+			this.getList(this.listParams);
 		},
 		/* 下拉刷新 */
 		async onPullDownRefresh() {
@@ -145,10 +144,10 @@
 				this.list = [];
 			},
 			search(value) {
+				if(!uni.$u.trim(value)) return uni.$u.toast('请输入客户名称或客户编码');
 				this.init();
-				this.listParams.name = value;
+				this.listParams.searchValue = uni.$u.trim(value);
 				this.getList(this.listParams);
-				console.log('搜索', value);
 			},
 			tabsChange({
 				index,
@@ -163,8 +162,7 @@
 			async getList({
 					pageNum = 1,
 					pageSize = 10,
-					name = '',
-					code = '',
+					searchValue = '',
 					isHighSeas = '',
 			}) {
 				try{
@@ -172,8 +170,7 @@
 					const params = {
 						pageNum,
 						pageSize,
-						name,
-						code,
+						searchValue,
 						isHighSeas
 					}
 					let { rows: data, total } = await getCustomPage(params);

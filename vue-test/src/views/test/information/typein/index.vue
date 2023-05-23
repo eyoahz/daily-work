@@ -9,8 +9,8 @@
 		<!-- End 顶部导航栏 -->
 		
 		<view class="container">
-			<view class="search u-border-bottom">
-				<u-search placeholder="搜索客户名称或编码" :showAction="false" :disabled="true" @click="search" />
+			<view v-if="!id" class="search u-border-bottom">
+				<u-search placeholder="搜索企业名称" actionText="搜索" @custom="search" />
 			</view>
 			<view class="form">
 				<u--form ref="uForm" :model="uFormModel" labelPosition="top" labelWidth="auto">
@@ -274,7 +274,7 @@
 
 <script>
 import { getDict } from '@/common/api/user.js';
-import { insertCustom, updateCustom, getTeamList, getRegionList, getCustomGradeList, getCustomDetail } from '@/common/api/customer.js'
+import { insertCustom, updateCustom, getTeamList, getRegionList, getCustomGradeList, getCustomDetail, getTyc } from '@/common/api/customer.js'
 import PickerTree from './components/picker-tree.vue'
 	
 export default {
@@ -445,7 +445,6 @@ export default {
 		}
 	},
 	async onLoad({ id }) {
-		console.log('非新增客户情况下需请求客户详情');
 		try{
 			this.id = id;
 			uni.showLoading({
@@ -469,8 +468,11 @@ export default {
 		this.$refs.uForm.setRules(this.uFormRules.customerInfo);
 	},
 	methods: {
-		search() {
-			console.log('搜索');
+		async search(value) {
+			const param = uni.$u.trim(value, 'all');
+			if(!param) return uni.$u.toast('请输入企业名称')
+			const res = await getTyc(uni.$u.trim(value, 'all'));
+			console.log('搜索', res);
 		},
 		/* 获取详情 */
 		async getDetail(id) {

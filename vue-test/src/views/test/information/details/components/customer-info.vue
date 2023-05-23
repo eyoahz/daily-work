@@ -82,6 +82,7 @@
 					width: '200rpx',
 					height: '80rpx'
 				}"
+				@click="toEdit"
 			></u-button>
 		</view>
 	</view>
@@ -107,13 +108,23 @@ export default {
 		this.getDetail();
 	},
 	methods: {
-		init() {
-			this.getDetail();
-		},
-		getDetail() {
-			getCustomDetail({ id: this.keyId }).then(res => {
+		// init() {},
+		async getDetail() {
+			try{
+				uni.showLoading({
+					title: '加载中',
+					mask: true
+				})
+				const res = await getCustomDetail({ id: this.keyId });
 				this.data = res;
-			})
+				uni.hideLoading();
+			}catch(err){
+				uni.$u.toast(err);
+			}
+		},
+		/* 刷新 */
+		async refresh() {
+			await this.getDetail();
 		},
 		toEdit() {
 			uni.navigateTo({

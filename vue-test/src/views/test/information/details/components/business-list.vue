@@ -1,37 +1,35 @@
 <template>
 	<view class="business-list">
 		<view class="list">
-			<view class="list-item" v-for="item in 2">
+			<view class="list-item" v-for="item in list" :key="item.id">
 				<view class="top  u-border-bottom">
-					<view class="top-title  u-line-1">小浣熊ERP平台</view>
-					<u-tag text="标签" bgColor="#e9f3ff" color="#2989FF" borderColor="transparent" size="mini" />
+					<view class="top-title  u-line-1">{{ item.name || '' }}</view>
+					<u-tag bgColor="#e9f3ff" color="#2989FF" borderColor="transparent" size="mini"
+						:text="currentStatus[item.currentStatus]"
+					/>
 				</view>
-				<view class="info">
+				<view class="info" @tap="$u.route('/pages/sub/opportunities/details/index', { id: item.id })">
 					<view class="info-item">
 						<text>客户名称</text>
-						<text class="u-line-1">厦门因驰销售A组</text>
+						<text class="u-line-1">{{ item.customName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所属团队</text>
-						<text class="u-line-1">
-							<text style="color: #2989FF;">3</text>个
-						</text>
+						<text class="u-line-1">{{ item.teamName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>对接人员</text>
-						<text class="u-line-1">福建漳州</text>
+						<text class="u-line-1">{{ item.projectIndividual || '' }}</text>
 					</view>
-					<view class="info-item">
+					<!-- <view class="info-item">
 						<text>商机报价</text>
-						<text class="u-line-1">食品</text>
-					</view>
-					<view class="info-item">
-						<text>商机合同</text>
-						<text class="u-line-1">食品</text>
-					</view>
+						<text class="u-line-1">{{ item.name || '' }}</text>
+					</view> -->
 				</view>
 			</view>
 		</view>
+		
+		<u-loadmore :status="loadmoreStatus" />
 		
 		<view class="footer">
 			<u-button text="新增商机" shape="circle" color="#2989FF" :customStyle="{
@@ -45,19 +43,91 @@
 </template>
 
 <script>
+import { getMpCustomOpportunitiesPage } from "@/common/api/customer.js";
 	
 export default {
 	props: {
-		data: {	// 列表数组
-			type: Array,
-			default: () => []
+		code: {	// 用户编码
+			type: [String, Number],
+			default: ''
 		},
 	},
 	data() {
 		return {
-			
+			listParams: {
+				pageNum: 1,
+				pageSize: 10,
+				customCode: '',
+				searchValue: '',
+				currentStatus: '',
+			},
+			isLast: false,
+			loadmoreStatus: 'loadmore',
+			list: [],
+			// 项目状态
+			currentStatus: {
+				DSH: "待审核",
+				SHTG: "审核通过",
+				SHBTG: "审核不通过",
+				YWC: "已完成",
+				YSF: "已释放"
+			}
 		}
 	},
+	mounted() {
+		this.listParams.customCode = this.code;
+		this.getList(this.listParams);
+	},
+	methods: {
+		/* 列表初始化 */
+		init() {
+			this.listParams.pageNum = 1;
+			this.isLast = false;
+			this.list = [];
+		},
+		async getList({
+				pageNum = 1,
+				pageSize = 10,
+				customCode = '',
+				searchValue = '',
+				currentStatus = '',
+		}) {
+			try{
+				this.loadmoreStatus = 'loading';
+				const params = {
+					pageNum,
+					pageSize,
+					customCode,
+					searchValue,
+					currentStatus
+				}
+				let { rows: data, total } = await getMpCustomOpportunitiesPage(params);
+				total ??= 0;
+				data ??= [];
+				this.list.push(...data);
+				if(pageNum * pageSize >= total) {
+					this.loadmoreStatus = 'nomore';
+					this.isLast = true;
+					return;
+				}
+				this.loadmoreStatus = 'loadmore';
+			}catch(err){
+				uni.$u.toast(err);
+				this.loadmoreStatus = 'loadmore';
+			}
+		},
+		/* 刷新 */
+		async refresh() {
+			this.init();
+			await this.getList(this.listParams);
+		},
+		/* 触底 */
+		async reachBottom() {
+			if(this.isLast) return;
+			this.listParams.pageNum++;
+			await this.getList(this.listParams);
+		},
+	}
 }
 </script>
 

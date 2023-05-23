@@ -75,10 +75,5 @@ export default {
 					type: Array,
 					default: () => []
 				},
-				// 筛选数据的唯一标识
-				// code: {
-				// 	type: [String, Number],
-				// 	default: ''
-				// }
     }
 }

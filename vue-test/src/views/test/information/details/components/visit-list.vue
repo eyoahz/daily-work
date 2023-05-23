@@ -1,59 +1,133 @@
 <template>
 	<view class="visit-list">
 		<view class="list">
-			<view class="list-item" v-for="item in 6">
+			<view class="list-item" v-for="item in list" :key="item.id" >
 				<view class="top  u-border-bottom">
-					<view class="top-title  u-line-1">福建省梦娇兰日用化学品有限公司</view>
-					<u-tag text="标签" bgColor="#e9f3ff" color="#2989FF" borderColor="transparent" size="mini" />
+					<view class="top-title  u-line-1">{{ item.customName || '' }}</view>
+					<u-tag bgColor="#e9f3ff" color="#2989FF" borderColor="transparent" size="mini"
+						:text="visitType[item.visitType]" 
+					/>
 				</view>
 				<view class="info">
 					<view class="info-item">
 						<text>所属团队</text>
-						<text class="u-line-1">厦门因驰销售A组</text>
+						<text class="u-line-1">{{ item.teamName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>拜访人员</text>
-						<text class="u-line-1">
-							<text style="color: #2989FF;">3</text>个
-						</text>
+						<text class="u-line-1">{{ item.ourVisitor || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所属商机</text>
-						<text class="u-line-1">福建漳州</text>
+						<text class="u-line-1">{{ item.customOpportunitiesName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>拜访日期</text>
-						<text class="u-line-1">食品</text>
+						<text class="u-line-1">{{ item.visitTime | date }}</text>
 					</view>
 				</view>
 			</view>
 		</view>
 		
+		<u-loadmore :status="loadmoreStatus" />
+		
 		<view class="footer">
-			<u-button text="拜访签到" shape="circle" color="#2989FF" :customStyle="{
-				margin: 0,
-				marginLeft: 'auto',
-				width: '200rpx',
-				height: '80rpx'
-			}"></u-button>
+			<u-button text="拜访签到" shape="circle" color="#2989FF" 
+				:customStyle="{
+					margin: 0,
+					marginLeft: 'auto',
+					width: '200rpx',
+					height: '80rpx'
+				}"
+				@click="toVisit"
+			></u-button>
 		</view>
 	</view>
 </template>
 
 <script>
+import { getMpCustomVisitPage } from "@/common/api/customer.js";
 	
 export default {
 	props: {
-		data: {	// 列表数组
-			type: Array,
-			default: () => []
+		code: {	// 用户编码
+			type: [String, Number],
+			default: ''
 		},
 	},
 	data() {
 		return {
-			
+			listParams: {
+				pageNum: 1,
+				pageSize: 10,
+				searchValue: '',
+				visitType: '',
+			},
+			isLast: false,
+			loadmoreStatus: 'loadmore',
+			list: [],
+			// 拜访类型
+			visitType: {
+				RC: '日常',
+				SJ: '商机',
+			}
 		}
 	},
+	mounted() {
+		this.listParams.searchValue = this.code;
+		this.getList(this.listParams);
+	},
+	methods: {
+		/* 列表初始化 */
+		init() {
+			this.listParams.pageNum = 1;
+			this.isLast = false;
+			this.list = [];
+		},
+		async getList({
+				pageNum = 1,
+				pageSize = 10,
+				searchValue = '',
+				visitType = '',
+		}) {
+			try{
+				this.loadmoreStatus = 'loading';
+				const params = {
+					pageNum,
+					pageSize,
+					searchValue,
+					visitType,
+				}
+				let { rows: data, total } = await getMpCustomVisitPage(params);
+				total ??= 0;
+				data ??= [];
+				this.list.push(...data);
+				if(pageNum * pageSize >= total) {
+					this.loadmoreStatus = 'nomore';
+					this.isLast = true;
+					return;
+				}
+				this.loadmoreStatus = 'loadmore';
+			}catch(err){
+				uni.$u.toast(err);
+				this.loadmoreStatus = 'loadmore';
+			}
+		},
+		/* 刷新 */
+		async refresh() {
+			this.init();
+			await this.getList(this.listParams);
+		},
+		/* 触底 */
+		async reachBottom() {
+			if(this.isLast) return;
+			this.listParams.pageNum++;
+			await this.getList(this.listParams);
+		},
+		toVisit() {
+			console.log('前往拜访签到');
+		}
+	}
 }
 </script>
 

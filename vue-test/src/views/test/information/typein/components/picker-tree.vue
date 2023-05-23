@@ -56,10 +56,17 @@ export default {
 	mixins: [uni.$u.mpMixin, uni.$u.mixin, props],
 	data() {
 		return {
+			first: true, // 是否第一次加载组件
+			code: '',	// 筛选数据的唯一标识
 			columns: [], // 每一列数据  [[第1列], [第2列], [第3列]]
 			defaultIndex: [], // 各列的默认索引
 			tree: [],
 			treeFlatMap: new Map(),		// tree 的扁平化Map数据
+		}
+	},
+	watch: {
+		code: function() {
+				this.changeColumns();
 		}
 	},
 	mounted() {
@@ -67,7 +74,7 @@ export default {
 		// 初始化 picker组件 每一列数据
 		const initial = (data = []) => {
 			this.columns.push(data)
-			if(Array.isArray(data[0].children)) initial(data[0].children);
+			if(Array.isArray(data[0]?.children)) initial(data[0].children);
 		}
 		initial(this.tree);
 		
@@ -75,8 +82,8 @@ export default {
 		const treeFlat = (data = [], column = 0) => {
 			data.forEach((item, index) => {
 				if(item.parentId == 0) column = 0;
-				this.treeFlatMap.set(item.id, { ...item, column, index })
-				if(Array.isArray(item.children)) {
+				this.treeFlatMap.set(String(item.id), { ...item, column, index })
+				if(Array.isArray(item?.children)) {
 					treeFlat(item.children, ++column);
 				} 
 			})
@@ -106,9 +113,9 @@ export default {
 			// value[columnIndex] 当前变化项
 			this.columns.splice(columnIndex + 1);
 			const linkage = (currentValue) => {
-				if(Array.isArray(currentValue.children)) {
+				if(Array.isArray(currentValue?.children)) {
 					this.columns.push(currentValue.children);
-					linkage(currentValue.children[0])
+					linkage(currentValue.children?.[0])
 				}
 			}
 			linkage(value[columnIndex]);
@@ -116,21 +123,26 @@ export default {
 		/* 用于改变 columns			对象数组，设置每一列的数据 */
 		changeColumns(columns) {
 			if(columns) return this.columns = columns;
-			const code = this.code;
+			const code = String(this.code);
 			this.columns.splice(0);
-			// this.columns.unshift(this.treeFlatMap.get)
+			this.defaultIndex.splice(0);
 			const setColumns = (code) => {
-				const { parenetId, index } = this.treeFlatMap.get(code);	// 获取父id以及在当前列中的位置索引
-				const parent = this.treeFlatMap.get(parenetId);	// 获取父元素
+				const { parentId, index } = this.treeFlatMap.get(code);	// 获取父id以及在当前列中的位置索引
+				const parent = this.treeFlatMap.get(String(parentId));	// 获取父元素
 				this.columns.unshift(parent.children);	// 压入code所在的父元素的children
 				this.defaultIndex.unshift(index);		// 压入code所在元素在当前列的位置
-				if(parent.parenetId > 0) {
-					setColumns(parent.id);
+				if(parent?.parentId > 0) {
+					setColumns(String(parent.id));
 				} else {
+					this.defaultIndex.unshift(parent.index);
 					this.columns.unshift(this.tree);
 				}
 			}
-			// setColumns()
+			setColumns(code);
+		},
+		/* 改变code，触发changeColumns */
+		changeCode(code) {
+			this.code = code;
 		}
 	}
 }
