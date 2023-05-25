@@ -1,13 +1,19 @@
 <template>
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
-		<u-navbar title="拜访记录" :placeholder="true" bgColor="#2989FF" :leftIcon="null" :border="false"
-			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }" />
+		<u-navbar title="拜访记录" :placeholder="true" bgColor="#2989FF" :border="false"
+			autoBack
+			leftIconColor="#fff"
+			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
+		/>
 		<!-- End 顶部导航栏 -->
 
 		<view class="container">
 			<view class="search u-border-bottom">
-				<u-search v-model="listParams.searchValue" placeholder="搜索客户名称或编码" actionText="搜索" @custom="search" />
+				<u-search v-model="listParams.searchValue" placeholder="搜索客户名称或编码" actionText="搜索"
+					@custom="search" 
+					@clear="searchClear"
+				/>
 			</view>
 			<u-sticky :customNavHeight="customNavHeight">
 				<view class="tabs">
@@ -36,7 +42,7 @@
 							:text="visitType[item.visitType]" 
 						/>
 					</view>
-					<view class="info">
+					<view class="info" @tap="$u.route('/pages/sub/customer/visit/details/index', { id: item.id })">
 						<view class="info-item">
 							<text>所属团队</text>
 							<text class="u-line-1">{{ item.teamName || '' }}</text>
@@ -94,7 +100,7 @@
 				],
 				listParams: {
 					pageNum: 1,
-					pageSize: 4,
+					pageSize: 10,
 					searchValue: '',
 					visitType: '',
 				},
@@ -140,6 +146,10 @@
 				if(!uni.$u.trim(value)) return uni.$u.toast('请输入客户名称或客户编码');
 				this.init();
 				this.listParams.searchValue = uni.$u.trim(value);
+				this.getList(this.listParams);
+			},
+			searchClear() {
+				this.init();
 				this.getList(this.listParams);
 			},
 			tabsChange({
