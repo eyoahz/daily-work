@@ -1,8 +1,11 @@
 <template>
 	<view class="page">
 		<!-- Region 顶部导航栏 -->
-		<u-navbar title="拜访详情" :placeholder="true" bgColor="#2989FF" :leftIcon="null" :border="false"
-			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }" />
+		<u-navbar title="拜访详情" :placeholder="true" bgColor="#2989FF" :border="false"
+			autoBack
+			leftIconColor="#fff"
+			:titleStyle="{ color: 'rgba(255, 255, 255, 1)', 'font-weight': 'bold' }"
+		/>
 		<!-- End 顶部导航栏 -->
 
 		<view class="container">
@@ -15,11 +18,11 @@
 					<view class="info">
 						<view class="info-item">
 							<text>客户编码</text>
-							<text class="u-line-1">KH2023051214355601</text>
+							<text class="u-line-1">{{ data.customCode || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>客户名称</text>
-							<text class="u-line-1">福建省梦娇兰日用化学品有限公司A组</text>
+							<text class="u-line-1">{{ data.customName || '' }}</text>
 						</view>
 					</view>
 				</view>
@@ -31,64 +34,65 @@
 					<view class="info">
 						<view class="info-item">
 							<text>拜访编号</text>
-							<text class="u-line-1">BF2023051009342134</text>
+							<text class="u-line-1">{{ data.code || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访类型</text>
-							<text class="u-line-1">日常</text>
+							<text class="u-line-1">{{ visitType[data.visitType] || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>所属商机</text>
-							<text class="u-line-1">ERP</text>
+							<text class="u-line-1">{{ data.customOpportunitiesName || '' }}</text>
 						</view>
-						<view class="info-item">
+						<!-- <view class="info-item">
 							<text>拜访方式</text>
-							<text class="u-line-1">面谈</text>
-						</view>
+							<text class="u-line-1">{{ data.visitingMethods || '' }}</text>
+						</view> -->
 						<view class="info-item">
 							<text>拜访日期</text>
-							<text class="u-line-1">2023年5月10日</text>
+							<text class="u-line-1">{{ data.visitTime | date }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访人员</text>
-							<text class="u-line-1">何志楠</text>
+							<text class="u-line-1">{{ data.ourVisitor || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>签到地址</text>
-							<text class="u-line-1">福建省龙海市港公路8号</text>
+							<text class="u-line-1">{{ data.signInAddress || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>签到时间</text>
-							<text class="u-line-1">09:34</text>
+							<text class="u-line-1">{{ data.signInTime || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>客户方接待人</text>
-							<text class="u-line-1">经理</text>
+							<text class="u-line-1">{{ data.customerReception || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>商谈事项</text>
-							<text class="u-line-1">ERP平台细节</text>
+							<text class="u-line-1">{{ data.negotiateMatters || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>结果评价</text>
-							<text class="u-line-1">无</text>
+							<text class="u-line-1">{{ data.resultEvaluation || '' }}</text>
 						</view>
 					</view>
 				</view>
 				
-				<view class="list-item">
+				<view class="list-item" v-if="list.length">
 					<view class="top  u-border-bottom">
 						<view class="top-title  u-line-1">相关附件</view>
 					</view>
 					<view class="info">
-						<view class="info-item" v-for="item in 3">
-							<text>附件</text>
-							<a href="" style="color: #2989FF;">下载</a>
+						<view class="info-item" v-for="item in list" :key="item.id">
+							<text>{{ item.name || '' }}</text>
+							<view style="color: #2989FF;" @tap="() => download(item.name, item.url)">下载</view>
 						</view>
 					</view>
 				</view>
 			</view>
 			<!-- End 列表 -->
+			
 		</view>
 
 		<view class="footer">
@@ -103,22 +107,90 @@
 </template>
 
 <script>
+	import { getCustomVisitDetail, getAnnexList } from '@/common/api/customer.js';
+	import { file } from '@/common/util/https';
+	
 	export default {
 		data() {
 			return {
+				// 详情数据
+				data: {},
+				// 拜访类型
+				visitType: {
+					RC: '日常',
+					SJ: '商机',
+				},
+				listParams: {
+					sourceId: '',
+					type: 'KHBF',
+				},
+				list: [],
+			}
+		},
+		async onLoad({ id }) {
+			try{
+				this.listParams.sourceId = id;
+				uni.showLoading({
+					title: '加载中',
+					mask: true
+				})
+				const [ data, list ] = await this.init();
+				this.data = data?.value ?? {};
+				this.list = list?.value?.rows ?? [];
+				console.log(this.data, this.list);
+				uni.hideLoading();
+			}catch(err){
+				uni.$u.toast(err);
 			}
 		},
 		methods: {
+			/* 初始化数据 */
+			init() {
+				const promises = [
+					getCustomVisitDetail({ id: this.listParams.sourceId }),
+					getAnnexList(this.listParams)
+				]
+				return Promise.allSettled(promises);
+			},
 			search(value) {
 				console.log('搜索', value);
 			},
-			tabsChange({
-				index,
-				type
-			}) {
-				if (this.currentTabs === index) return;
-				this.currentTabs = index;
-				console.log(type);
+			/* 下载 */
+			download(name, url) {
+				const docSuffix = ['.doc', '.xls', '.ppt', '.pdf', '.docx', '.xlsx', '.pptx'];
+				uni.showLoading({
+					title: '下载中',
+					mask: true
+				})
+				uni.downloadFile({
+					url,
+					success: (res) => {
+						console.log(res, 123);
+						const tempFilePath = res?.tempFilePath;
+						const suffix = res?.tempFilePath.match(/\.([^./\\]+)$/g)[0];
+						if(docSuffix.includes(suffix)) {
+							uni.openDocument({
+								filePath: res?.tempFilePath,
+								showMenu: true,
+								fail: () => {
+									uni.$u.toast('打开失败');
+								}
+							})
+						} else {
+							uni.previewImage({
+								current: 0,
+								urls: [res?.tempFilePath],
+								fail: () => {
+									uni.$u.toast('打开失败');
+								}
+							})
+						}
+						uni.hideLoading();
+					},
+					fail: () => {
+						uni.$u.toast('下载失败');
+					}
+				})
 			}
 		}
 	}
