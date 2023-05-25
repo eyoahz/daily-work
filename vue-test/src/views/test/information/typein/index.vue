@@ -564,7 +564,7 @@ export default {
 		firstSigningYearConfirm({ value }) {
 			this.show.firstSigningYear = false;
 			this.uFormModel.customerInfo.firstSigningYearLabel = this.$u.timeFormat(value, 'yyyy');
-			this.uFormModel.customerInfo.firstSigningYear = this.$u.timeFormat(value, 'yyyy-mm-dd');
+			this.uFormModel.customerInfo.firstSigningYear = value;
 		},
 		/* 提交表单-新增 */
 		async addSubmit() {

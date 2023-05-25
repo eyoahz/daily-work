@@ -10,7 +10,10 @@
 
 		<view class="container">
 			<view class="search u-border-bottom">
-				<u-search v-model="listParams.searchValue" placeholder="搜索客户名称或编码" actionText="搜索" @custom="search" />
+				<u-search v-model="listParams.searchValue" placeholder="搜索客户名称或编码" actionText="搜索"
+						@custom="search" 
+						@clear="searchClear"
+				/>
 			</view>
 			<u-sticky :customNavHeight="customNavHeight">
 				<view class="tabs">
@@ -147,6 +150,10 @@
 				if(!uni.$u.trim(value)) return uni.$u.toast('请输入客户名称或客户编码');
 				this.init();
 				this.listParams.searchValue = uni.$u.trim(value);
+				this.getList(this.listParams);
+			},
+			searchClear() {
+				this.init();
 				this.getList(this.listParams);
 			},
 			tabsChange({
