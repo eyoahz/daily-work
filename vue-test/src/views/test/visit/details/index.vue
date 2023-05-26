@@ -34,60 +34,68 @@
 					<view class="info">
 						<view class="info-item">
 							<text>拜访编号</text>
-							<text class="u-line-1">{{ data.code || '' }}</text>
+							<text>{{ data.code || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访类型</text>
-							<text class="u-line-1">{{ visitType[data.visitType] || '' }}</text>
+							<text>{{ visitType[data.visitType] || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>所属商机</text>
-							<text class="u-line-1">{{ data.customOpportunitiesName || '' }}</text>
+							<text>{{ data.customOpportunitiesName || '' }}</text>
 						</view>
 						<!-- <view class="info-item">
 							<text>拜访方式</text>
-							<text class="u-line-1">{{ data.visitingMethods || '' }}</text>
+							<text>{{ data.visitingMethods || '' }}</text>
 						</view> -->
 						<view class="info-item">
 							<text>拜访日期</text>
-							<text class="u-line-1">{{ data.visitTime | date }}</text>
+							<text>{{ data.visitTime | date }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访人员</text>
-							<text class="u-line-1">{{ data.ourVisitor || '' }}</text>
-						</view>
-						<view class="info-item">
-							<text>签到地址</text>
-							<text class="u-line-1">{{ data.signInAddress || '' }}</text>
+							<text>{{ data.ourVisitor || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>签到时间</text>
-							<text class="u-line-1">{{ data.signInTime || '' }}</text>
+							<text>{{ data.signInTime || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>客户方接待人</text>
-							<text class="u-line-1">{{ data.customerReception || '' }}</text>
+							<text>{{ data.customerReception || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>商谈事项</text>
-							<text class="u-line-1">{{ data.negotiateMatters || '' }}</text>
+							<text>{{ data.negotiateMatters || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>结果评价</text>
-							<text class="u-line-1">{{ data.resultEvaluation || '' }}</text>
+							<text>{{ data.resultEvaluation || '' }}</text>
+						</view>
+						<view class="info-item">
+							<text>签到地址</text>
+							<text>{{ data.signInAddress || '' }}</text>
 						</view>
 					</view>
 				</view>
 				
-				<view class="list-item" v-if="list.length">
+				<view class="list-item">
 					<view class="top  u-border-bottom">
 						<view class="top-title  u-line-1">相关附件</view>
+						<view style="color: #2989ff" @tap="upload">上传</view>
 					</view>
 					<view class="info">
 						<view class="info-item" v-for="item in list" :key="item.id">
 							<text>{{ item.name || '' }}</text>
 							<view style="color: #2989FF;" @tap="() => download(item.name, item.url)">下载</view>
 						</view>
+					</view>
+					<view v-show="false">
+						<u-upload
+							ref="uUpload"
+							accept="all"
+							@afterRead="afterRead"
+						></u-upload>
 					</view>
 				</view>
 			</view>
@@ -96,18 +104,21 @@
 		</view>
 
 		<view class="footer">
-			<u-button text="修改详情" shape="circle" color="#2989FF" :customStyle="{
-				margin: 0,
-				marginLeft: 'auto',
-				width: '200rpx',
-				height: '80rpx'
-			}"></u-button>
+			<u-button text="修改详情" shape="circle" color="#2989FF" 
+				:customStyle="{
+					margin: 0,
+					marginLeft: 'auto',
+					width: '200rpx',
+					height: '80rpx'
+				}"
+				@click="toEdit"
+			/>
 		</view>
 	</view>
 </template>
 
 <script>
-	import { getCustomVisitDetail, getAnnexList } from '@/common/api/customer.js';
+	import { getCustomVisitDetail, getAnnexList, insertBatchAnnex } from '@/common/api/customer.js';
 	import { file } from '@/common/util/https';
 	
 	export default {
@@ -128,32 +139,58 @@
 			}
 		},
 		async onLoad({ id }) {
-			try{
-				this.listParams.sourceId = id;
-				uni.showLoading({
-					title: '加载中',
-					mask: true
-				})
-				const [ data, list ] = await this.init();
-				this.data = data?.value ?? {};
-				this.list = list?.value?.rows ?? [];
-				console.log(this.data, this.list);
-				uni.hideLoading();
-			}catch(err){
-				uni.$u.toast(err);
-			}
+			this.listParams.sourceId = id;
+			this.getDetail();
 		},
 		methods: {
 			/* 初始化数据 */
 			init() {
+				this.data = {};
+				this.list = [];
+			},
+			getDetailPromise() {
 				const promises = [
 					getCustomVisitDetail({ id: this.listParams.sourceId }),
 					getAnnexList(this.listParams)
 				]
 				return Promise.allSettled(promises);
 			},
-			search(value) {
-				console.log('搜索', value);
+			async getDetail(id) {
+				try{
+					uni.showLoading({
+						title: '加载中',
+						mask: true
+					})
+					const [ data, list ] = await this.getDetailPromise();
+					this.data = data?.value ?? {};
+					this.list = list?.value?.rows ?? [];
+					uni.hideLoading();
+				}catch(err){
+					uni.$u.toast(err);
+				}
+			},
+			async afterRead({ file: { name, size, url } }) {
+				try{
+					uni.showLoading({
+						title: '上传中',
+						mask: true
+					})
+					let { data } = await file.upload({ filePath: url, options: { isReturnNativeResponse: true } });
+					const response = JSON.parse(data) ?? {};
+					await insertBatchAnnex([{
+						...this.listParams,
+						name,
+						url: response?.data?.url,
+					}])
+					this.list.push({ url: response?.data?.url, name })
+					uni.$u.toast('上传成功');
+				}catch(err){
+					uni.$u.toast(err);
+				}
+			},
+			/* 上传 */
+			upload() {
+				this.$refs.uUpload.chooseFile();
 			},
 			/* 下载 */
 			download(name, url) {
@@ -165,7 +202,6 @@
 				uni.downloadFile({
 					url,
 					success: (res) => {
-						console.log(res, 123);
 						const tempFilePath = res?.tempFilePath;
 						const suffix = res?.tempFilePath.match(/\.([^./\\]+)$/g)[0];
 						if(docSuffix.includes(suffix)) {
@@ -189,6 +225,18 @@
 					},
 					fail: () => {
 						uni.$u.toast('下载失败');
+					}
+				})
+			},
+			toEdit() {
+				uni.navigateTo({
+					url: `/pages/sub/customer/visit/attendance/index?id=${this.listParams.sourceId}`,
+					events: {
+						// 初始化
+						initial: () => {
+							this.init();
+							this.getDetail();
+						}
 					}
 				})
 			}
@@ -242,11 +290,16 @@
 
 				&-item {
 					display: flex;
+					gap: 10rpx;
 					justify-content: space-between;
 
 					text {
 						&:nth-of-type(1) {
+							flex-shrink: 0;
 							color: #888888;
+						}
+						&:nth-of-type(2) {
+							word-break: break-all;
 						}
 					}
 				}
