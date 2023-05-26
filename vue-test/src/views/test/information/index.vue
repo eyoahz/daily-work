@@ -36,7 +36,7 @@
 			<!-- Region 列表 -->
 			<view class="list">
 				<view class="list-item" v-for="item in list" :key="item.id" 
-					@tap="$u.route('/pages/sub/customer/information/details/index', { id: item.id, code: item.code })"
+					@tap="$u.route('/pages/sub/customer/information/details/index', { id: item.id, code: item.code, name: item.name })"
 				>
 					<view class="top  u-border-bottom">
 						<view class="top-title  u-line-1">{{ item.name || '' }}</view>
@@ -49,21 +49,21 @@
 					<view class="info">
 						<view class="info-item">
 							<text>客户编码</text>
-							<text class="u-line-1">{{ item.code || '' }}</text>
+							<text>{{ item.code || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>所属团队</text>
-							<text class="u-line-1">{{ item.teamName || '' }}</text>
+							<text>{{ item.teamName || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>商机数量</text>
-							<text class="u-line-1">
+							<text>
 								<text style="color: #2989FF;">{{ item.opportunitiesNum || 0 }}</text>个
 							</text>
 						</view>
 						<!-- <view class="info-item">
 							<text>所在行业</text>
-							<text class="u-line-1">{{ item.industry || '' }}</text>
+							<text>{{ item.industry || '' }}</text>
 						</view> -->
 					</view>
 				</view>
@@ -256,11 +256,16 @@
 
 				&-item {
 					display: flex;
+					gap: 10rpx;
 					justify-content: space-between;
 
 					text {
 						&:nth-of-type(1) {
+							flex-shrink: 0;
 							color: #888888;
+						}
+						&:nth-of-type(2) {
+							word-break: break-all;
 						}
 					}
 				}
