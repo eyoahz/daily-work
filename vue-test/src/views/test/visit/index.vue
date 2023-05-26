@@ -45,19 +45,19 @@
 					<view class="info" @tap="$u.route('/pages/sub/customer/visit/details/index', { id: item.id })">
 						<view class="info-item">
 							<text>所属团队</text>
-							<text class="u-line-1">{{ item.teamName || '' }}</text>
+							<text>{{ item.teamName || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访人员</text>
-							<text class="u-line-1">{{ item.ourVisitor || '' }}</text>
+							<text>{{ item.ourVisitor || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>所属商机</text>
-							<text class="u-line-1">{{ item.customOpportunitiesName || '' }}</text>
+							<text>{{ item.customOpportunitiesName || '' }}</text>
 						</view>
 						<view class="info-item">
 							<text>拜访日期</text>
-							<text class="u-line-1">{{ item.visitTime | date }}</text>
+							<text>{{ item.visitTime | date }}</text>
 						</view>
 					</view>
 				</view>
@@ -67,12 +67,15 @@
 		</view>
 
 		<view class="footer">
-			<u-button text="拜访签到" shape="circle" color="#2989FF" :customStyle="{
-				margin: 0,
-				marginLeft: 'auto',
-				width: '200rpx',
-				height: '80rpx'
-			}"></u-button>
+			<u-button text="拜访签到" shape="circle" color="#2989FF" 
+				:customStyle="{
+					margin: 0,
+					marginLeft: 'auto',
+					width: '200rpx',
+					height: '80rpx'
+				}"
+				@click="toAttendance"
+			/>
 		</view>
 	</view>
 </template>
@@ -191,9 +194,9 @@
 					this.loadmoreStatus = 'loadmore';
 				}
 			},
-			toTypein() {
+			toAttendance() {
 				uni.navigateTo({
-					url: '/pages/sub/customer/information/typein/index',
+					url: '/pages/sub/customer/visit/attendance/index',
 					events: {
 						initial: () => {
 							this.init();
@@ -252,11 +255,16 @@
 
 				&-item {
 					display: flex;
+					gap: 10rpx;
 					justify-content: space-between;
 
 					text {
 						&:nth-of-type(1) {
+							flex-shrink: 0;
 							color: #888888;
+						}
+						&:nth-of-type(2) {
+							word-break: break-all;
 						}
 					}
 				}
