@@ -8,35 +8,35 @@
 				<view class="info">
 					<view class="info-item">
 						<text>客户编码</text>
-						<text class="u-line-1">{{ data.code || '' }}</text>
+						<text>{{ data.code || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>客户名称</text>
-						<text class="u-line-1">{{ data.name || '' }}</text>
+						<text>{{ data.name || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>信用代码</text>
-						<text class="u-line-1">{{ data.unifiedSocialCreditCode || '' }}</text>
+						<text>{{ data.unifiedSocialCreditCode || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所在省市</text>
-						<text class="u-line-1">{{ `${data.province || ''}${data.city || ''}` }}</text>
+						<text>{{ `${data.province || ''}${data.city || ''}` }}</text>
 					</view>
 					<view class="info-item">
 						<text>经营人</text>
-						<text class="u-line-1">{{ data.operator || '' }}</text>
+						<text>{{ data.operator || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>企业类型</text>
-						<text class="u-line-1">{{ data.enterpriseType || '' }}</text>
+						<text>{{ data.enterpriseType || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所属行业</text>
-						<text class="u-line-1">{{ data.industry || '' }}</text>
+						<text>{{ data.industry || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>企业规模</text>
-						<text class="u-line-1">{{ data.scale || '' }}</text>
+						<text>{{ data.scale || '' }}</text>
 					</view>
 				</view>
 			</view>
@@ -65,10 +65,6 @@
 					<view class="info-item">
 						<text>首次签约年</text>
 						<text class="u-line-1">{{ (data.firstSigningYear || '').slice(0, 4) }}</text>
-					</view>
-					<view class="info-item">
-						<text>maybe</text>
-						<text class="u-line-1">{{ test.maybe.name }}</text>
 					</view>
 				</view>
 			</view>
@@ -108,7 +104,9 @@ export default {
 		this.getDetail();
 	},
 	methods: {
-		// init() {},
+		init() {
+			this.data = {};
+		},
 		async getDetail() {
 			try{
 				uni.showLoading({
@@ -133,6 +131,7 @@ export default {
 					// 初始化
 					initial: () => {
 						this.init();
+						this.getDetail();
 					}
 				}
 			})
@@ -179,6 +178,9 @@ export default {
 						&:nth-of-type(1) {
 							flex-shrink: 0;
 							color: #888888;
+						}
+						&:nth-of-type(2) {
+							word-break: break-all;
 						}
 					}
 				}

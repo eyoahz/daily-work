@@ -8,22 +8,22 @@
 						:text="visitType[item.visitType]" 
 					/>
 				</view>
-				<view class="info">
+				<view class="info" @tap="$u.route('/pages/sub/customer/visit/details/index', { id: item.id })">
 					<view class="info-item">
 						<text>所属团队</text>
-						<text class="u-line-1">{{ item.teamName || '' }}</text>
+						<text>{{ item.teamName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>拜访人员</text>
-						<text class="u-line-1">{{ item.ourVisitor || '' }}</text>
+						<text>{{ item.ourVisitor || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所属商机</text>
-						<text class="u-line-1">{{ item.customOpportunitiesName || '' }}</text>
+						<text>{{ item.customOpportunitiesName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>拜访日期</text>
-						<text class="u-line-1">{{ item.visitTime | date }}</text>
+						<text>{{ item.visitTime | date }}</text>
 					</view>
 				</view>
 			</view>
@@ -50,7 +50,11 @@ import { getMpCustomVisitPage } from "@/common/api/customer.js";
 	
 export default {
 	props: {
-		code: {	// 用户编码
+		code: {	// 客户编码
+			type: [String, Number],
+			default: ''
+		},
+		name: {	// 客户名称
 			type: [String, Number],
 			default: ''
 		},
@@ -125,7 +129,16 @@ export default {
 			await this.getList(this.listParams);
 		},
 		toVisit() {
-			console.log('前往拜访签到');
+			uni.navigateTo({
+				url: `/pages/sub/customer/visit/attendance/index?customCode=${this.code}&customName=${this.name}`,
+				events: {
+					// 初始化
+					initial: () => {
+						this.init();
+						this.refresh();
+					}
+				}
+			})
 		}
 	}
 }
@@ -161,12 +174,18 @@ export default {
 	
 				&-item {
 					display: flex;
+					gap: 10rpx;
 					justify-content: space-between;
 	
 					text {
 						&:nth-of-type(1) {
-							flex-shrink: 0;
-							color: #888888;
+							&:nth-of-type(1) {
+								flex-shrink: 0;
+								color: #888888;
+							}
+							&:nth-of-type(2) {
+								word-break: break-all;
+							}
 						}
 					}
 				}

@@ -32,13 +32,13 @@
 			</u-sticky>
 			<!-- Region 列表 -->
 			<view v-show="currentTabs === 0">
-				<customer-info ref="customerInfo" :keyId="user.id" />
+				<customer-info />
 			</view>
 			<view v-show="currentTabs === 1">
-				<visit-list ref="visitList" :code="user.code" :name="user.name" />
+				<visit-list />
 			</view>
 			<view v-show="currentTabs === 2">
-				<business-list ref="businessList" :code="user.code"/>
+				<business-list />
 			</view>
 			<!-- End 列表 -->
 		</view>
@@ -75,52 +75,6 @@
 						type: '商机记录',
 					},
 				],
-				user: {
-					id: '',	// 用户id
-					code: '',	// 用户编码
-					name: '', // 用户名称
-				},
-			}
-		},
-		onLoad({ id, code, name }) {
-			this.user.id = id;
-			this.user.code = code;
-			this.user.name = name;
-		},
-		/* 下拉刷新 */
-		async onPullDownRefresh() {
-			try {
-				uni.showLoading({
-					title: '加载中',
-					mask: true,
-				})
-				switch (this.currentTabs) {
-					case 0:
-						await this.$refs.customerInfo.refresh();
-						break;
-					case 1:
-						await this.$refs.visitList.refresh();
-						break;
-					case 2:
-						await this.$refs.businessList.refresh();
-						break;
-				}
-				uni.hideLoading();
-			}catch(err) {
-				uni.$u.toast(err);
-			} finally {
-				uni.stopPullDownRefresh();
-			}
-		},
-		/* 触底 */
-		onReachBottom() {
-			switch (this.currentTabs) {
-				case 1:
-					this.$refs.visitList.reachBottom();
-					break;
-				case 2:
-					this.$refs.businessList.reachBottom();
-					break;
 			}
 		},
 		mounted() {
@@ -129,17 +83,21 @@
 				this.customNavHeight = data?.top;
 			}).exec();
 		},
+		onReachBottom() {
+			console.log('触底');
+		},
 		methods: {
-			/* search(value) {
+			search(value) {
 				console.log('搜索', value);
-			}, */
+			},
 			tabsChange({
 				index,
 				type
 			}) {
 				if (this.currentTabs === index) return;
 				this.currentTabs = index;
-			},
+				console.log(type);
+			}
 		}
 	}
 </script>

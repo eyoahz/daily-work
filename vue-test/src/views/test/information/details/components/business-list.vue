@@ -11,19 +11,19 @@
 				<view class="info" @tap="$u.route('/pages/sub/opportunities/details/index', { id: item.id })">
 					<view class="info-item">
 						<text>客户名称</text>
-						<text class="u-line-1">{{ item.customName || '' }}</text>
+						<text>{{ item.customName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>所属团队</text>
-						<text class="u-line-1">{{ item.teamName || '' }}</text>
+						<text>{{ item.teamName || '' }}</text>
 					</view>
 					<view class="info-item">
 						<text>对接人员</text>
-						<text class="u-line-1">{{ item.projectIndividual || '' }}</text>
+						<text>{{ item.projectIndividual || '' }}</text>
 					</view>
 					<!-- <view class="info-item">
 						<text>商机报价</text>
-						<text class="u-line-1">{{ item.name || '' }}</text>
+						<text>{{ item.name || '' }}</text>
 					</view> -->
 				</view>
 			</view>
@@ -161,12 +161,16 @@ export default {
 	
 				&-item {
 					display: flex;
+					gap: 10rpx;
 					justify-content: space-between;
 	
 					text {
 						&:nth-of-type(1) {
 							flex-shrink: 0;
 							color: #888888;
+						}
+						&:nth-of-type(2) {
+							word-break: break-all;
 						}
 					}
 				}
