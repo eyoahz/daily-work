@@ -19,13 +19,14 @@
 							width: '160rpx',
 							height: '60rpx'
 						}"
-						@click="() => vuex_getGeocoder()"
+						@click="() => vuex_chooseLocation()"
 					/>
 				</view>
 				<map id="map" style="height: 250rpx; width: 100%;" :latitude="vuex_location.latitude" :longitude="vuex_location.longitude" :show-location="true" />
 				<view class="bottom">
 					<u-icon name="map" color="#2989FF" />
-					<text>{{ vuex_geocoder.address || '' }}{{ vuex_geocoder.name || '' }}</text>
+					<text v-if="id">{{ uFormModel.visitInfo.signInAddress || '' }}</text>
+					<text v-else>{{ vuex_geocoder.address || '' }}{{ vuex_geocoder.name || '' }}</text>
 				</view>
 			</view>
 			<!-- End 地图 -->
@@ -169,16 +170,19 @@
 			</view>
 			
 			<!-- Region 附件上传 -->
-			<view class="annex">
+			<view class="annex" v-if="!id">
 				<view class="top  u-border-bottom">
 					<view class="top-title  u-line-1">相关附件</view>
 				</view>
 				<u-upload
 					accept="all"
 					:fileList="uFormModel.visitInfo.annexList"
+					width="180rpx"
+					height="180rpx"
 					@afterRead="afterRead"
 					@delete="deletePic"
 					:maxCount="10"
+					showFilename
 				></u-upload>
 			</view>
 			<!-- End 附件上传 -->
@@ -278,13 +282,15 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
+import { file } from '@/common/util/https';
 import { getDict } from '@/common/api/user.js';
-import { insertCustomVisit } from '@/common/api/customer.js';
+import { insertCustomVisit, getCustomVisitDetail, updateCustomVisit } from '@/common/api/customer.js';
 	
 export default {
 	data() {
 		return {
 			id: '',
+			customCode: '',
 			signInTimeInterval: '',
 			uFormModel: {
 				visitInfo: {
@@ -311,10 +317,7 @@ export default {
 					negotiateMatters: '',	// 商谈事项
 					resultEvaluation: '',	// 结果评价
 					nextVisitMatters: '',	// 下次拜访事项
-					annexList: [{
-						url: 'https://cdn.uviewui.com/uview/swiper/1.jpg',
-						filename: '123'
-					}],	// 附件
+					annexList: [],	// 附件
 				}
 			},
 			uFormRules: {
@@ -392,25 +395,29 @@ export default {
 				saleStage: [[]]
 			},
 			dictMap: {
+				visitType: new Map(),
 				visitingMethods: new Map(),
 				saleStage: new Map(),
 			},
 		}
 	},
 	onReady() {
-		this.vuex_getGeocoder();
 		this.$refs.uForm.setRules(this.uFormRules.visitInfo);
 	},
-	async onLoad({ id }) {
+	async onLoad({ id, customCode, customName }) {
 		try{
 			this.id = id;
+			this.customCode = customCode ?? '';
+			this.uFormModel.visitInfo.customName = customName ?? '';
+			this.uFormModel.visitInfo.customCode = customCode ?? '';
+			if(!this.id) this.vuex_getGeocoder();
 			!this.id && (this.signInTimeInterval = setInterval(() => {
 				const currentTime = Number(new Date());
 				this.uFormModel.visitInfo.signInTime = currentTime;
 				this.uFormModel.visitInfo.signInTimeLabel = uni.$u.timeFormat(currentTime, 'yyyy-mm-dd hh:MM');
 				this.uFormModel.visitInfo.visitTime = currentTime;
 				this.uFormModel.visitInfo.visitTimeLabel = uni.$u.timeFormat(currentTime, 'yyyy-mm-dd hh:MM');
-			}, 500))
+			}, 1000))
 			uni.showLoading({
 				title: '加载中',
 				mask: true,
@@ -419,10 +426,10 @@ export default {
 			this.columns.visitingMethods[0] = crm_bffs;
 			this.columns.saleStage[0] = crm_xsjd;
 			
+			this.initDictMap({ visitType: this.columns.visitType[0] });
 			this.initDictMap({ visitingMethods: crm_bffs });
 			this.initDictMap({ saleStage: crm_xsjd });
-			console.log(this.dictMap, 77777);
-			// id && await this.getDetail(id);
+			id && await this.getDetail(id);
 			uni.hideLoading();
 		}catch(err){
 			uni.$u.toast(err);
@@ -431,19 +438,28 @@ export default {
 	onUnload() {
 		!this.id && clearInterval(this.signInTimeInterval);
 	},
+	watch: {
+		vuex_geocoder: function() {
+			this.uFormModel.visitInfo.signInAddress = (this.vuex_geocoder.address ?? '') + (this.vuex_geocoder.name ?? '');
+		}
+	},
 	computed: {
 		...mapState({
 			vuex_location: state => state.init.vuex_location,
 			vuex_geocoder: state => state.init.vuex_geocoder
-		})
+		}),
 	},
 	methods: {
-		...mapActions(['vuex_getGeocoder']),
+		...mapActions(['vuex_chooseLocation', 'vuex_getGeocoder']),
+		/* 打开地图 */
+		openMap() {
+			uni.chooseLocation()
+		},
 		// 初始化字典 值-键 映射
 		initDictMap(data) {
 			Object.keys(data).forEach(key => {
 				data[key]?.forEach(item => {
-					this.dictMap[key].set(item.value, item.value)
+					this.dictMap[key].set(item.value, item.label);
 				})
 			})
 		},
@@ -506,8 +522,30 @@ export default {
 			this.uFormModel.visitInfo[fieldLabel] = label ?? '';
 			this.uFormModel.visitInfo[field] = value ?? '';
 		},
+		/* 获取拜访记录详情 */
+		async getDetail(id) {
+			const res = await getCustomVisitDetail({ id });
+			Object.assign(this.uFormModel.visitInfo, res, {
+				visitTypeLabel: this.dictMap.visitType.get(res?.visitType),
+				customOpportunitiesIdLabel: res?.customOpportunitiesName,
+				visitingMethodsLabel: this.dictMap.visitingMethods.get(res?.visitingMethods),
+				saleStageLabel: this.dictMap.saleStage.get(res?.saleStage),
+				visitTimeLabel: uni.$u.timeFormat(res?.visitTime, 'yyyy-mm-dd hh:MM'),
+				visitTime: Number(new Date(res?.visitTime)),
+				signInTimeLabel: uni.$u.timeFormat(res?.signInTime, 'yyyy-mm-dd hh:MM'),
+				signInTime: Number(new Date(res?.signInTime)),
+				nextVisitDateLabel: uni.$u.timeFormat(res?.nextVisitDate, 'yyyy-mm-dd hh:MM'),
+				nextVisitDate: Number(new Date(res?.nextVisitDate)),
+			})
+			this.$nextTick(() => {
+				this.$refs.visitTimeDatetime.init();
+				this.$refs.signInTimeDatetime.init();
+				this.$refs.nextVisitDateDatetime.init();
+			})
+		},
 		/* 客户选择 */
 		customerSelection() {
+			if(this.customCode) return uni.$u.toast('不可更改');
 			uni.navigateTo({
 				url: '/pages/sub/public/selection/customer',
 				events: {
@@ -530,11 +568,30 @@ export default {
 				}
 			})
 		},
+		async afterRead({ file: { name, size, url } }) {
+			try{
+				uni.showLoading({
+					title: '上传中',
+					mask: true
+				})
+				let { data } = await file.upload({ filePath: url, options: { isReturnNativeResponse: true } });
+				const response = JSON.parse(data) ?? {};
+				this.uFormModel.visitInfo.annexList.push({ 
+					url: response?.data?.url,
+					name,
+					filename: name,
+				})
+				uni.hideLoading();
+			}catch(err){
+				uni.$u.toast(err);
+			}
+		},
+		deletePic({ index }) {
+			this.uFormModel.visitInfo.annexList.splice(index, 1);
+		},
 		/* 提交表单-新增 */
 		async addSubmit() {
 			try{
-				this.uFormModel.visitInfo.signInAddress = (this.vuex_geocoder.address ?? '') + (this.vuex_geocoder.name ?? '');
-				console.log(123, this.uFormModel.visitInfo.signInAddress);
 				if(!this.uFormModel.visitInfo.signInAddress) return uni.$u.toast('请获取签到地址');
 				const eventChannel = this.getOpenerEventChannel();
 				uni.showLoading({
@@ -568,6 +625,42 @@ export default {
 				uni.$u.toast(err);
 			}
 		},
+		/* 提交表单-修改 */
+		async editSubmit() {
+			try{
+				if(!this.uFormModel.visitInfo.signInAddress) return uni.$u.toast('请获取签到地址');
+				const eventChannel = this.getOpenerEventChannel();
+				uni.showLoading({
+					title: '提交中',
+					mask: true,
+				})
+				const res = await this.$refs.uForm.validate();
+				await updateCustomVisit({ 
+					...this.uFormModel.visitInfo,
+					visitTime: uni.$u.timeFormat(this.uFormModel.visitInfo.visitTime, 'yyyy-mm-dd hh:MM:ss'),
+					signInTime: uni.$u.timeFormat(this.uFormModel.visitInfo.signInTime, 'yyyy-mm-dd hh:MM:ss'),
+					nextVisitDate: uni.$u.timeFormat(this.uFormModel.visitInfo.nextVisitDate, 'yyyy-mm-dd hh:MM:ss')
+				});
+				uni.$u.toast('提交成功');
+				const preRouter = getCurrentPages()?.slice(-2);
+				setTimeout(() => {
+					if(preRouter?.[0]?.route == 'pages/main/home/index') {
+						uni.redirectTo({
+							url: '/pages/sub/customer/visit/index'
+						});
+						return;
+					}
+					uni.navigateBack({
+						success() {
+							eventChannel.emit('initial')
+						}
+					})
+				}, 500)
+			}catch(err){
+				if(Array.isArray(err)) return uni.$u.toast(err[0]?.message ?? '校验失败');
+				uni.$u.toast(err);
+			}
+		}
 	}
 }
 </script>
@@ -633,6 +726,9 @@ export default {
 				font-size: 28rpx;
 				font-weight: bold;
 			}
+		}
+		::v-deep .u-upload__wrap__preview__other {
+			flex: none;
 		}
 	}
 	
