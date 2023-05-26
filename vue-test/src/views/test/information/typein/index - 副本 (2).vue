@@ -9,8 +9,8 @@
 		<!-- End 顶部导航栏 -->
 		
 		<view class="container">
-			<view v-if="!id" class="search u-border-bottom">
-				<u-search v-model="searchParam" placeholder="请输入完整企业名称" actionText="搜索" @custom="search" />
+			<view class="search u-border-bottom">
+				<u-search placeholder="搜索客户名称或编码" :showAction="false" :disabled="true" @click="search" />
 			</view>
 			<view class="form">
 				<u--form ref="uForm" :model="uFormModel" labelPosition="top" labelWidth="auto">
@@ -24,27 +24,6 @@
 						/>
 					</u-form-item>
 					<u-form-item
-						label="所属行业"
-						prop="customerInfo.industry"
-						:required="true"
-					>
-						<u--input v-model="uFormModel.customerInfo.industry" />
-					</u-form-item>
-					<u-form-item
-						label="企业类型"
-						prop="customerInfo.enterpriseType"
-						:required="true"
-					>
-						<u--input v-model="uFormModel.customerInfo.enterpriseType" />
-					</u-form-item>
-					<u-form-item
-						label="企业规模"
-						prop="customerInfo.scale"
-						:required="true"
-					>
-						<u--input v-model="uFormModel.customerInfo.scale" />
-					</u-form-item>
-					<u-form-item
 						label="战场"
 						prop="customerInfo.battlefieldLabel"
 						:required="true"
@@ -54,6 +33,42 @@
 							suffixIcon="arrow-down"
 							readonly
 							@tap="show.battlefield = true"
+						/>
+					</u-form-item>
+					<u-form-item
+						label="所属行业"
+						prop="customerInfo.industryLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.industryLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap="show.industry = true"
+						/>
+					</u-form-item>
+					<u-form-item
+						label="企业类型"
+						prop="customerInfo.enterpriseTypeLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.enterpriseTypeLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap="show.enterpriseType = true"
+						/>
+					</u-form-item>
+					<u-form-item
+						label="企业规模"
+						prop="customerInfo.scaleLabel"
+						:required="true"
+					>
+						<u--input
+							v-model="uFormModel.customerInfo.scaleLabel"
+							suffixIcon="arrow-down"
+							readonly
+							@tap="show.scale = true"
 						/>
 					</u-form-item>
 					<u-form-item
@@ -99,7 +114,6 @@
 					>
 						<u--input
 							v-model="uFormModel.customerInfo.unifiedSocialCreditCode"
-							disabled
 						/>
 					</u-form-item>
 					<u-form-item
@@ -201,6 +215,36 @@
 		></u-picker>
 		<!-- End 战场 -->
 		
+		<!-- Region 所属行业 -->
+		<u-picker :show="show.industry" :columns="columns.industry"
+			keyName="label"
+			closeOnClickOverlay
+			@close="show.industry = false"
+			@cancel="show.industry = false"
+			@confirm="(e) => dictConfirm(e, 'industryLabel', 'industry')"
+		></u-picker>
+		<!-- End 所属行业 -->
+		
+		<!-- Region 企业类型 -->
+		<u-picker :show="show.enterpriseType" :columns="columns.enterpriseType"
+			keyName="label"
+			closeOnClickOverlay
+			@close="show.enterpriseType = false"
+			@cancel="show.enterpriseType = false"
+			@confirm="(e) => dictConfirm(e, 'enterpriseTypeLabel', 'enterpriseType')"
+		></u-picker>
+		<!-- End 企业类型 -->
+		
+		<!-- Region 企业规模 -->
+		<u-picker :show="show.scale" :columns="columns.scale"
+			keyName="label"
+			closeOnClickOverlay
+			@close="show.scale = false"
+			@cancel="show.scale = false"
+			@confirm="(e) => dictConfirm(e, 'scaleLabel', 'scale')"
+		></u-picker>
+		<!-- End 企业规模 -->
+		
 		<!-- Region 所属团队 -->
 		<u-picker :show="show.teamId" :columns="columns.teamId"
 			keyName="label"
@@ -236,7 +280,6 @@
 		
 		<!-- Region 首次签约年 -->
 		<u-datetime-picker
-			ref="firstSigningYearDatetime"
 			:show="show.firstSigningYear"
 			v-model="uFormModel.customerInfo.firstSigningYear"
 			mode="year-month"
@@ -248,25 +291,14 @@
 		<!-- End 首次签约年 -->
 	
 		<view class="footer">
-			<u-button text="确认修改" shape="circle" color="#2989FF"
-				v-if="id"
+			<u-button text="确认提交" shape="circle" color="#2989FF" 
 				:customStyle="{
 					margin: 0,
 					marginLeft: 'auto',
 					width: '200rpx',
 					height: '80rpx'
 				}"
-				@click="editSubmit"
-			></u-button>
-			<u-button text="确认提交" shape="circle" color="#2989FF"
-				v-if="!id"
-				:customStyle="{
-					margin: 0,
-					marginLeft: 'auto',
-					width: '200rpx',
-					height: '80rpx'
-				}"
-				@click="addSubmit"
+				@click="submit"
 			></u-button>
 		</view>
 	</view>
@@ -274,22 +306,23 @@
 
 <script>
 import { getDict } from '@/common/api/user.js';
-import { insertCustom, updateCustom, getTeamList, getRegionList, getCustomGradeList, getCustomDetail, getTyc } from '@/common/api/customer.js'
+import { insertCustom, getTeamList, getRegionList, getCustomGradeList } from '@/common/api/customer.js'
 import PickerTree from './components/picker-tree.vue'
 	
 export default {
 	components: { PickerTree },
 	data() {
 		return {
-			id: '', // 客户id
-			searchParam: '',
 			uFormModel: {
 				customerInfo: {
-					name: "",
+					name: "测试",
 					battlefieldLabel: "",	// 战场label
 					battlefield: "",	// 战场value
+					industryLabel: "",	// 所属行业label
 					industry: "",	// 所属行业value
+					enterpriseTypeLabel: "",	// 企业类型label
 					enterpriseType: "",	// 企业类型value
+					scaleLabel: "",	// 企业规模label
 					scale: "",	// 企业规模value
 					teamIdLabel: "",	// 所属团队label
 					teamId: "",	// 所属团队value
@@ -297,13 +330,13 @@ export default {
 					regionId: "",	// 所属大区value
 					gradeIdLabel: "",	// 客户等级label
 					gradeId: "",	// 客户等级value
-					unifiedSocialCreditCode: "",
-					province: "",
-					city: "",
-					officeAddress: "",
-					companyRegisteredAddress: "",
-					operator: "",
-					source: "",
+					unifiedSocialCreditCode: "CSH208421831535140",
+					province: "福建省",
+					city: "厦门市",
+					officeAddress: "淮海路小猪佩奇有限公司",
+					companyRegisteredAddress: "淮海路小猪佩奇有限公司",
+					operator: "西门庆",
+					source: "武大郎",
 					firstSigningYearLabel: "",	// 首次签约年Label
 					firstSigningYear: Number(new Date()),	// 首次签约年value
 					informationInfrastructureStatus: "",
@@ -434,80 +467,53 @@ export default {
 			},
 			columns: {
 				battlefield: [[]],
+				industry: [[]],
+				enterpriseType: [[]],
+				scale: [[]],
 				teamId: [[]],
 				// regionId: [],
 				gradeId: [[]],
-			},
-			dictMap: {
-				battlefield: new Map()
 			},
 			regionTree: [],	// 大区树形原始数据
 			regionMap: new Map(), // 扁平化大区Map数据
 		}
 	},
-	async onLoad({ id }) {
-		try{
-			this.id = id;
-			uni.showLoading({
-				title: '加载中',
-				mask: true,
-			})
-			const [crm_zc, teamList, customGradeList, regionList] = await this.dictPickerPromise();
+	onLoad() {
+		// this.$nextTick(() => {
+		// 	this.uFormModel.customerInfo.regionId = '3';
+		// 	this.$refs.regionId.changeColumns();
+			
+		// })
+		console.log('非新增客户情况下需请求客户详情');
+		uni.showLoading({
+			title: '加载中',
+			mask: true,
+		})
+		this.dictPickerPromise().then(res => {
+			const [crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList] = res;
 			this.columns.battlefield[0] = crm_zc;
+			this.columns.industry[0] = crm_hy;
+			this.columns.enterpriseType[0] = crm_qylx;
+			this.columns.scale[0] = crm_qygm;
 			this.columns.teamId[0] = teamList;
 			this.columns.gradeId[0] = customGradeList;
 			this.regionTree = regionList;
-			
-			this.initDictMap({ battlefield: crm_zc });
-			id && await this.getDetail(id);
+			// this.handleRegionTree(regionList);
 			uni.hideLoading();
-		}catch(err){
+		}).catch(err => {
 			uni.$u.toast(err);
-		}
+		})
+	},
+	mounted() {
+		this.$refs.regionId.code = '3';
+		console.log(88888888);
 	},
 	onReady() {
 		this.$refs.uForm.setRules(this.uFormRules.customerInfo);
 	},
 	methods: {
-		async search(value) {
-			try{
-				uni.showLoading({
-					title: '加载中',
-					mask: true
-				})
-				const param = uni.$u.trim(value, 'all');
-				if(!param) return uni.$u.toast('请输入企业名称');
-				const res = await getTyc(uni.$u.trim(value, 'all'));
-				Object.assign(this.uFormModel.customerInfo, {
-					...(res || {}),
-					name: res?.name,
-					enterpriseType: res?.companyOrgType,
-					scale: res?.staffNumRange,
-					unifiedSocialCreditCode: res?.creditCode,
-					province: res?.base,
-					officeAddress: res?.regLocation,
-					companyRegisteredAddress: res?.regLocation,
-				})
-				uni.hideLoading();
-			}catch(err){
-				uni.$u.toast(err);
-			}
-		},
-		/* 获取详情 */
-		async getDetail(id) {
-			const res = await getCustomDetail({ id });
-			Object.assign(this.uFormModel.customerInfo, res, {
-				battlefieldLabel: this.dictMap.battlefield.get(res?.battlefield),
-				teamIdLabel: res?.teamName,
-				regionIdLabel: res?.regionName,
-				gradeIdLabel: res?.gradeName,
-				firstSigningYearLabel: uni.$u.timeFormat(res?.firstSigningYear, 'yyyy'),
-				firstSigningYear: uni.$u.timeFormat(res?.firstSigningYear, 'yyyy-mm-dd')
-			});
-			this.$nextTick(() => {
-				this.$refs.regionId.changeCode(this.uFormModel.customerInfo.regionId);
-				this.$refs.firstSigningYearDatetime.init();
-			})
+		search() {
+			console.log('搜索');
 		},
 		dictExtract(initialArr) {
 			return (initialArr ?? []).reduce((arr, cur) => {
@@ -521,7 +527,23 @@ export default {
 				return arr;
 			}, [])
 		},
-		/* 大区确认 */
+		/* 处理大区树 */
+		/* handleRegionTree(tree = []) {
+			this.regionTree = tree;
+			
+			// 扁平化
+			const treeFlat = (data = [], column = 0) => {
+				data.forEach((item, index) => {
+					if(item.parentId == 0) column = 0;
+					this.regionMap.set(item.id, { ...item, column, index })
+					if(Array.isArray(item.children)) {
+						treeFlat(item.children, ++column);
+					} 
+				})
+			}
+			treeFlat(tree);
+		}, */
+		// 大区确认
 		regionIdConfirm({ value = [] }, fieldLabel, field) {
 			this.show[field] = false;
 			const { name, id } = value[value.length - 1];
@@ -531,14 +553,20 @@ export default {
 		dictPickerPromise() {
 			return new Promise((resolve, reject) => {
 				const crm_zc = getDict('crm_zc');
+				const crm_hy = getDict('crm_hy');
+				const crm_qylx = getDict('crm_qylx');
+				const crm_qygm = getDict('crm_qygm');
 				const teamList = getTeamList();
 				const customGradeList = getCustomGradeList();
 				const regionList = getRegionList();
-				Promise.all([crm_zc, teamList, customGradeList, regionList])
+				Promise.all([crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList])
 					.then(res => {
-						const [crm_zc, teamList, customGradeList, regionList] = res;
+						const [crm_zc, crm_hy, crm_qylx, crm_qygm, teamList, customGradeList, regionList] = res;
 						resolve([
 							this.dictExtract(crm_zc),
+							this.dictExtract(crm_hy),
+							this.dictExtract(crm_qylx),
+							this.dictExtract(crm_qygm),
 							this.defaultExtract(teamList),
 							this.defaultExtract(customGradeList),
 							regionList
@@ -549,14 +577,6 @@ export default {
 					})
 			})
 		},
-		// 初始化字典 值-键 映射
-		initDictMap(data) {
-			Object.keys(data).forEach(key => {
-				data[key]?.forEach(item => {
-					this.dictMap[key].set(item.value, item.label)
-				})
-			})
-		},
 		dictConfirm({ value: [{ label, value }] }, fieldLabel, field) {
 			this.show[field] = false;
 			this.uFormModel.customerInfo[fieldLabel] = label ?? '';
@@ -564,11 +584,11 @@ export default {
 		},
 		firstSigningYearConfirm({ value }) {
 			this.show.firstSigningYear = false;
-			this.uFormModel.customerInfo.firstSigningYearLabel = this.$u.timeFormat(value, 'yyyy');
-			this.uFormModel.customerInfo.firstSigningYear = value;
+			this.uFormModel.customerInfo.firstSigningYearLabel = this.$u.timeFormat(value, 'yyyy年mm月');
+			this.uFormModel.customerInfo.firstSigningYear = this.$u.timeFormat(value, 'yyyy年');
 		},
-		/* 提交表单-新增 */
-		async addSubmit() {
+		// * 提交表单
+		async submit() {
 			try{
 				const eventChannel = this.getOpenerEventChannel();
 				uni.showLoading({
@@ -576,22 +596,12 @@ export default {
 					mask: true,
 				})
 				const res = await this.$refs.uForm.validate();
-				await insertCustom({ 
-					...this.uFormModel.customerInfo,
-					firstSigningYear: uni.$u.timeFormat(this.uFormModel.customerInfo.firstSigningYear, 'yyyy-mm-dd')
-				});
+				await insertCustom(this.uFormModel.customerInfo);
 				uni.$u.toast('提交成功');
-				const preRouter = getCurrentPages()?.slice(-2);
 				setTimeout(() => {
-					if(preRouter?.[0]?.route == 'pages/main/home/index') {
-						uni.redirectTo({
-							url: '/pages/sub/customer/information/index'
-						});
-						return;
-					}
 					uni.navigateBack({
 						success() {
-							eventChannel.emit('initial')
+							eventChannel.emit('init')
 						}
 					})
 				}, 500)
@@ -600,32 +610,6 @@ export default {
 				uni.$u.toast(err);
 			}
 		},
-		/* 提交表单-编辑 */
-		async editSubmit() {
-			try{
-				const eventChannel = this.getOpenerEventChannel();
-				uni.showLoading({
-					title: '提交中',
-					mask: true,
-				})
-				const res = await this.$refs.uForm.validate();
-				await updateCustom({
-					...this.uFormModel.customerInfo,
-					firstSigningYear: uni.$u.timeFormat(this.uFormModel.customerInfo.firstSigningYear, 'yyyy-mm-dd')
-				});
-				uni.$u.toast('提交成功');
-				setTimeout(() => {
-					uni.navigateBack({
-						success() {
-							eventChannel.emit('initial')
-						}
-					})
-				}, 500)
-			}catch(err){
-				if(Array.isArray(err)) return uni.$u.toast(err[0]?.message ?? '校验失败');
-				uni.$u.toast(err);
-			}
-		}
 	}
 }
 </script>
