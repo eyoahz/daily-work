@@ -325,7 +325,7 @@ export default {
 					'visitInfo.customName': {
 						type: 'string',
 						required: true,
-						message: '请填写客户名称',
+						message: '请选择客户',
 						trigger: ['blur', 'change']
 					},
 					'visitInfo.visitTypeLabel': {
@@ -545,7 +545,7 @@ export default {
 		},
 		/* 客户选择 */
 		customerSelection() {
-			if(this.customCode) return uni.$u.toast('不可更改');
+			if(this.id || this.customCode) return uni.$u.toast('不可更改');
 			uni.navigateTo({
 				url: '/pages/sub/public/selection/customer',
 				events: {
