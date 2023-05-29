@@ -84,12 +84,13 @@
 						<view class="top-title  u-line-1">相关附件</view>
 						<view style="color: #2989ff" @tap="upload">上传</view>
 					</view>
-					<view class="info">
+					<view class="info" v-if="list.length">
 						<view class="info-item" v-for="item in list" :key="item.id">
 							<text>{{ item.name || '' }}</text>
 							<view style="color: #2989FF;" @tap="() => download(item.name, item.url)">下载</view>
 						</view>
 					</view>
+					<u-empty mode="data" v-else/>
 					<view v-show="false">
 						<u-upload
 							ref="uUpload"
@@ -267,7 +268,7 @@
 
 		&-item {
 			margin-bottom: 30rpx;
-			padding: 0 34rpx;
+			padding: 0 34rpx 30rpx;
 			border-radius: $border-radius;
 			background-color: #fff;
 
