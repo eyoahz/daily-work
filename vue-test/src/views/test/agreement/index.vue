@@ -42,7 +42,7 @@
 							:text="visitType[item.visitType]" 
 						/> -->
 					</view>
-					<view class="info">
+					<view class="info" @tap="() => toDetails(item.id)">
 						<view class="info-item">
 							<text>客户名称</text>
 							<text>{{ item.customName || '' }}</text>
@@ -62,7 +62,7 @@
 			<u-loadmore :status="loadmoreStatus" />
 		</view>
 
-		<view class="footer" v-if="false">
+		<view class="footer">
 			<u-button text="新增合同" shape="circle" color="#2989FF" 
 				:customStyle="{
 					margin: 0,
@@ -190,17 +190,28 @@
 					this.loadmoreStatus = 'loadmore';
 				}
 			},
+			toDetails(id) {
+				uni.navigateTo({
+					url: `/pages/sub/customer/agreement/details/index?id=${id}`,
+					/* events: {
+						initial: () => {
+							this.init();
+							this.getList(this.listParams);
+						}
+					} */
+				})
+			},
 			tosignAgreement() {
 				console.log('新增合同');
-				// uni.navigateTo({
-				// 	url: '/pages/sub/customer/visit/attendance/index',
-				// 	events: {
-				// 		initial: () => {
-				// 			this.init();
-				// 			this.getList(this.listParams);
-				// 		}
-				// 	}
-				// })
+				uni.navigateTo({
+					url: '/pages/sub/customer/agreement/addition/index',
+					events: {
+						initial: () => {
+							this.init();
+							this.getList(this.listParams);
+						}
+					}
+				})
 			}
 		}
 	}
