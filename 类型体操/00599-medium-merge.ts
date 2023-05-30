@@ -24,13 +24,13 @@ type cases = [
 ];
 
 // ============= Your Code Here =============
-/* Region 不优雅 */
+/* Region 死脑经 */
 // 可以把 MyOmit 换成TS自带的 Omit
 // type MyOmit<T extends Record<string | number | symbol, any>, U> = { [K in keyof T as K extends U ? never : K]: T[K] };
 // type Merge<F extends Record<string | number | symbol, any>, S extends Record<string | number | symbol, any>> = {
 //   [K in keyof MyOmit<F, keyof S> | keyof S]: K extends keyof S ? S[K] : F[K];
 // };
-/* End 不优雅 */
+/* End 死脑经 */
 
 type Merge<F extends Record<string | number | symbol, any>, S extends Record<string | number | symbol, any>> = {
   [K in keyof (F & S)]: K extends keyof S ? S[K] : F[K];
