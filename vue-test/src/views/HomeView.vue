@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import { reactive, onMounted, ref } from "vue";
+
+const name = ref<string>('');
+const data = reactive<Record<any, any>>({
+    a: 123
+})
+
 // 防抖：规定事件内重复触发会重新计时
 function debounce(fn: () => any, timeout: number = 500, immediate: boolean = false) {
   let timer: any = null
@@ -39,6 +46,12 @@ function throttle(fn: () => any, timeout: number, immediate: boolean = true) {
 
 const handleClick1 = debounce(() => console.log('点击'), 1000, true)
 const handleClick2 = throttle(() => console.log('点击'), 1000, false)
+
+onMounted(() => {
+  document.querySelectorAll('button')!.forEach(node => {
+      node.innerHTML = '<div>傻逼123</div>'
+  })
+})
 </script>
 
 <template>
