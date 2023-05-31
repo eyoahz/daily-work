@@ -42,7 +42,7 @@
 							:text="visitType[item.visitType]" 
 						/>
 					</view>
-					<view class="info" @tap="() => toDetails(item.id)">
+					<view class="info" @tap="$u.route('/pages/sub/customer/visit/details/index', { id: item.id })">
 						<view class="info-item">
 							<text>所属团队</text>
 							<text>{{ item.teamName || '' }}</text>
@@ -193,17 +193,6 @@
 					uni.$u.toast(err);
 					this.loadmoreStatus = 'loadmore';
 				}
-			},
-			toDetails(id) {
-				uni.navigateTo({
-					url: `/pages/sub/customer/visit/details/index?id=${id}`,
-					/* events: {
-						initial: () => {
-							this.init();
-							this.getList(this.listParams);
-						}
-					} */
-				})
 			},
 			toAttendance() {
 				uni.navigateTo({

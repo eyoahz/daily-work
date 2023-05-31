@@ -84,13 +84,12 @@
 						<view class="top-title  u-line-1">相关附件</view>
 						<view style="color: #2989ff" @tap="upload">上传</view>
 					</view>
-					<view class="info" v-if="list.length">
+					<view class="info">
 						<view class="info-item" v-for="item in list" :key="item.id">
 							<text>{{ item.name || '' }}</text>
 							<view style="color: #2989FF;" @tap="() => download(item.name, item.url)">下载</view>
 						</view>
 					</view>
-					<u-empty mode="data" v-else/>
 					<view v-show="false">
 						<u-upload
 							ref="uUpload"
@@ -120,7 +119,7 @@
 
 <script>
 	import { getCustomVisitDetail, getAnnexList, insertBatchAnnex } from '@/common/api/customer.js';
-	import { file } from '@/common/util/https';
+	import { upload as fileUpload } from '@/common/api/init.js'
 	
 	export default {
 		data() {
@@ -176,8 +175,8 @@
 						title: '上传中',
 						mask: true
 					})
-					let { data } = await file.upload({ filePath: url, options: { isReturnNativeResponse: true } });
-					const response = JSON.parse(data) ?? {};
+					let { data } = await fileUpload({ filePath: url, options: { isReturnNativeResponse: true } })
+					const response = data ?? {};
 					await insertBatchAnnex([{
 						...this.listParams,
 						name,
@@ -268,7 +267,7 @@
 
 		&-item {
 			margin-bottom: 30rpx;
-			padding: 0 34rpx 30rpx;
+			padding: 0 34rpx;
 			border-radius: $border-radius;
 			background-color: #fff;
 
