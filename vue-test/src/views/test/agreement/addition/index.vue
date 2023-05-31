@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import { file } from '@/common/util/https';
+import { upload as fileUpload } from '@/common/api/init.js';
 import { insertCustomContract, getCustomContractDetail, updateCustomContract } from '@/common/api/customer.js';
 	
 export default {
@@ -205,8 +205,8 @@ export default {
 					title: '上传中',
 					mask: true
 				})
-				let { data } = await file.upload({ filePath: url, options: { isReturnNativeResponse: true } });
-				const response = JSON.parse(data) ?? {};
+				let { data } = await fileUpload({ filePath: url, options: { isReturnNativeResponse: true } })
+				const response = data ?? {};
 				this.uFormModel.agreementInfo.annexList.push({ 
 					url: response?.data?.url,
 					name,

@@ -96,7 +96,7 @@
 
 <script>
 	import { getCustomContractDetail, getAnnexList, insertBatchAnnex } from '@/common/api/customer.js';
-	import { file } from '@/common/util/https';
+	import { upload as fileUpload } from '@/common/api/init.js';
 	
 	export default {
 		data() {
@@ -147,8 +147,8 @@
 						title: '上传中',
 						mask: true
 					})
-					let { data } = await file.upload({ filePath: url, options: { isReturnNativeResponse: true } });
-					const response = JSON.parse(data) ?? {};
+					let { data } = await fileUpload({ filePath: url, options: { isReturnNativeResponse: true } })
+					const response = data ?? {};
 					await insertBatchAnnex([{
 						...this.listParams,
 						name,
