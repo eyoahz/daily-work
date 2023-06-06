@@ -44,18 +44,23 @@ function throttle(fn: () => any, timeout: number, immediate: boolean = true) {
   }
 }
 
-const handleClick1 = debounce(() => console.log('点击'), 1000, true)
-const handleClick2 = throttle(() => console.log('点击'), 1000, false)
+const variable = ref<number>(0);
+const handleClick1 = () => {
+    variable.value++;
+    console.log(123)
+}
+const handleClick2 =
 
 onMounted(() => {
   document.querySelectorAll('button')!.forEach(node => {
-      node.innerHTML = '<div>傻逼123</div>'
+      node.innerHTML = '<div>傻逼3</div>'
   })
 })
 </script>
 
 <template>
   <main>
+      {{ variable }}
     <button @click="handleClick1">防抖</button>
     <button @click="handleClick2">节流</button>
   </main>
