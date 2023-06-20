@@ -13,9 +13,9 @@ type MyExclude<T, U> = T extends U ? never : T;
 
 // 前情提要
 /**
- * union类型之间extends，t中的每一个类型都会与u中的每一个类型比较
+ * union类型之间extends，T中的每一个类型都会与U中的每一个类型比较
  * 例：
- * type t = 'a' | 'b' | 'c'
- * type u = 'a' | 'b'
- * type res = t extends U ? 1 | '2'
+ * type T = 'a' | 'b' | 'c'
+ * type U = 'a' | 'b'
+ * type Res = T extends U ? 1 : '2'
  */
