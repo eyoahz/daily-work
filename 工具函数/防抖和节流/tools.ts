@@ -24,28 +24,3 @@ function debounce(fn: Function, timeout: number, immediate: boolean = false) {
     }
   };
 }
-
-/**
- * @description: 节流
- * @param {Function} fn
- * @param {number} timeout
- * @param {boolean} immediate
- * @return {*}
- */
-function throttle(fn: Function, timeout: number, immediate: boolean = true) {
-  let timer: any = null;
-  return function (this: any, ...args: any[]) {
-    if (timer) return;
-    if (immediate) {
-      typeof fn === "function" && fn.apply(this, args);
-      timer = setTimeout(() => {
-        timer = null;
-      }, timeout);
-    } else {
-      timer = setTimeout(() => {
-        typeof fn === "function" && fn.apply(this, args);
-        timer = null;
-      }, timeout);
-    }
-  };
-}
