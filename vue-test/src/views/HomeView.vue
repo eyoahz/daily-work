@@ -2,12 +2,12 @@
 import VModel from '@/views/v-model/VModel.vue'
 import { ref } from 'vue'
 
-const show = ref<boolean>(false);
+const show = ref<boolean>(false)
 
 const handle = (flag: boolean) => {
-    show.value = flag;
+  show.value = flag
+  console.log('触发')
 }
-
 </script>
 
 <template>
@@ -15,6 +15,6 @@ const handle = (flag: boolean) => {
     <button @click="() => handle(true)">防抖</button>
     <button @click="() => handle(false)">节流</button>
     <!--<VModel v-model:show="show"></VModel>-->
-    <VModel v-model:show="show"></VModel>
+    <VModel :show="show" @update:show="handle"></VModel>
   </main>
 </template>
