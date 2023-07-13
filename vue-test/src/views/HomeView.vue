@@ -15,6 +15,13 @@ const handle = (flag: boolean) => {
     <button @click="() => handle(true)">防抖</button>
     <button @click="() => handle(false)">节流</button>
     <!--<VModel v-model:show="show"></VModel>-->
-    <VModel :show="show" @update:show="handle"></VModel>
+    <VModel>
+      <template v-slot="{ data }">
+        {{ data.hobby }}
+      </template>
+      <template #test="{ data }">
+        {{ data.name + data.age }}
+      </template>
+    </VModel>
   </main>
 </template>
