@@ -1,13 +1,25 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  show: boolean
-}>()
+import { makeList } from 'element-plus'
+import { reactive } from 'vue'
 
-const emits = defineEmits(['update:show'])
+const data = reactive<Record<string, any>>({
+  name: '小黑',
+  age: 18,
+  sex: 'male',
+  hobby: 'soccer'
+})
 </script>
 
 <template>
-  <el-dialog :model-value="props.show" @close="emits('update:show', false)"></el-dialog>
+  <div>测试具名插槽</div>
+  <slot name="test" :data="data"></slot>
+  <slot :data="data"></slot>
+
+  <el-tabs>
+    <el-tab-pane label="User" name="first">User</el-tab-pane>
+    <el-tab-pane label="Config" name="second">Config</el-tab-pane>
+    <el-tab-pane label="Role" name="third">Role</el-tab-pane>
+  </el-tabs>
 </template>
 
 <style scoped lang="scss"></style>
