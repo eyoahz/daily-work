@@ -25,6 +25,6 @@ const data = reactive<Record<string, any>>({
 .box {
   width: 400px;
   aspect-ratio: 1;
-  background-color: #f00;
+  background-image: linear-gradient(#ff0 0% 33%, #00f 33% 66%, #f0f 66% 100%);
 }
 </style>
