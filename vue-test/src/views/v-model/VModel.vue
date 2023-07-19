@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { useMouse } from '@vueuse/core'
-
-const { x, y } = useMouse({ touch: false })
+import { useRoute, useRouter } from 'vue-router'
 
 const data = reactive<Record<string, any>>({
   name: '小黑',
@@ -10,6 +8,9 @@ const data = reactive<Record<string, any>>({
   sex: 'male',
   hobby: 'soccer',
 })
+
+console.log(useRoute());
+
 </script>
 
 <template>
@@ -25,6 +26,6 @@ const data = reactive<Record<string, any>>({
 .box {
   width: 400px;
   aspect-ratio: 1;
-  background-image: linear-gradient(#ff0 0% 33%, #00f 33% 66%, #f0f 66% 100%);
+  background-image: linear-gradient(#ff0 33%, #00f 0% 66%, #f0f 0%);
 }
 </style>
