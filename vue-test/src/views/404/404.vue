@@ -1,7 +1,21 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 
-console.log(useRoute());
+const data = {
+  name: '小黑'
+}
+
+
+const $router = useRouter();
+console.log($router);
+$router.beforeEach((from, to, next) => {
+  next(vm => {
+    console.log(vm, 123456);
+    
+  })
+})
+
+
 
 </script>
 
