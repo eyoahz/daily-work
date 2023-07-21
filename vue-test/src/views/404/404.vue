@@ -1,10 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 
-const data = {
-  name: '小黑'
-}
-
 
 const $router = useRouter();
 console.log($router);
