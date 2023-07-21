@@ -8,12 +8,6 @@ const data = {
 
 const $router = useRouter();
 console.log($router);
-$router.beforeEach((from, to, next) => {
-  next(vm => {
-    console.log(vm, 123456);
-    
-  })
-})
 
 
 
