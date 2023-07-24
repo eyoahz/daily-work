@@ -1,32 +1,31 @@
 <script lang="ts" setup>
-import { createApp } from 'vue';
 
 
-function createrRenderer(options: any) {
-  function render(vnode: unknown, container: unknown) {
-    patch(null, vnode, container, null, null)
-  }
-  function patch(n1: unknown, n2: unknown, container: unknown, n3: unknown, n4: unknown) {
+function hostCreateElement(type: any) {
 
-  }
-
-  return {
-    createApp: createAppAPI(render)
-  }
 }
 
-function createAppAPI(render: any) {
-  return function createApp(rootComponent: any) {
-    const app = {
-      mount(rootContainer: any) {
-        const vnode = createVNode(rootComponent)
+function hostSetElementText(el: any, text: any) {
 
-        render(vnode, rootContainer);
-      }
-    }
-    return app;
+}
+
+function patch(n1: any, n2: any, container: any) {
+
+}
+
+function mountElement(vnode: any) {
+  const el = (vnode.el = hostCreateElement(vnode.type))
+
+  const { children } = vnode;
+
+  if (typeof children === 'string') {
+    hostSetElementText(el, children)
+  } else if (Array.isArray(children)) {
+    children.forEach((v) => {
+      patch(null, v, el)
+    })
   }
-} 
+}
 
 </script>
 
