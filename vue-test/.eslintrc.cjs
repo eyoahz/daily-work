@@ -1,5 +1,6 @@
 /* eslint-env node */
 // require('@rushstack/eslint-patch/modern-module-resolution')
+const process = require('node:process')
 process.env.ESLINT_TSCONFIG = 'tsconfig.json'
 
 module.exports = {
