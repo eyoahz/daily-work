@@ -1,6 +1,32 @@
 <script lang="ts" setup>
+import { createApp } from 'vue';
 
 
+function createrRenderer(options: any) {
+  function render(vnode: unknown, container: unknown) {
+    patch(null, vnode, container, null, null)
+  }
+  function patch(n1: unknown, n2: unknown, container: unknown, n3: unknown, n4: unknown) {
+
+  }
+
+  return {
+    createApp: createAppAPI(render)
+  }
+}
+
+function createAppAPI(render: any) {
+  return function createApp(rootComponent: any) {
+    const app = {
+      mount(rootContainer: any) {
+        const vnode = createVNode(rootComponent)
+
+        render(vnode, rootContainer);
+      }
+    }
+    return app;
+  }
+} 
 
 </script>
 
