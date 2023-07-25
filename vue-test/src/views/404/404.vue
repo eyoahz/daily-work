@@ -13,7 +13,11 @@ function patch(n1: any, n2: any, container: any) {
 
 }
 
-function mountElement(vnode: any) {
+function hostInsert(el: any, container: any) {
+
+}
+
+function mountElement(vnode: any, container: any) {
   const el = (vnode.el = hostCreateElement(vnode.type))
 
   const { children } = vnode;
@@ -25,6 +29,8 @@ function mountElement(vnode: any) {
       patch(null, v, el)
     })
   }
+
+  hostInsert(el, container)
 }
 
 </script>
