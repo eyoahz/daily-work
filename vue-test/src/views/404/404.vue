@@ -13,9 +13,6 @@ function patch(n1: any, n2: any, container: any) {
 
 }
 
-function hostInsert(el: any, container: any) {
-
-}
 
 
 </script>
