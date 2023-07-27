@@ -17,21 +17,6 @@ function hostInsert(el: any, container: any) {
 
 }
 
-function mountElement(vnode: any, container: any) {
-  const el = (vnode.el = hostCreateElement(vnode.type))
-
-  const { children } = vnode;
-
-  if (typeof children === 'string') {
-    hostSetElementText(el, children)
-  } else if (Array.isArray(children)) {
-    children.forEach((v) => {
-      patch(null, v, el)
-    })
-  }
-
-  hostInsert(el, container)
-}
 
 </script>
 
