@@ -9,9 +9,6 @@ function hostSetElementText(el: any, text: any) {
 
 }
 
-function patch(n1: any, n2: any, container: any) {
-
-}
 
 
 
