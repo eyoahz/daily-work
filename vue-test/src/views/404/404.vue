@@ -5,9 +5,6 @@ function hostCreateElement(type: any) {
 
 }
 
-function hostSetElementText(el: any, text: any) {
-
-}
 
 
 
