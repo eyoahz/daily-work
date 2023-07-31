@@ -1,14 +1,4 @@
 <script lang="ts" setup>
-
-
-function hostCreateElement(type: any) {
-
-}
-
-
-
-
-
 </script>
 
 <template>
