@@ -6,7 +6,4 @@
 </template>
 
 <style scoped lang="scss">
-.box {
-  width: 400px;
-}
 </style>
