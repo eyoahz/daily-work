@@ -8,6 +8,5 @@
 <style scoped lang="scss">
 .box {
   width: 400px;
-  aspect-ratio: 1;
 }
 </style>
