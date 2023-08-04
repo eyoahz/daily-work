@@ -8,5 +8,15 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@zhaoye-ui/components": "workspace:^",
+    "@zhaoye-ui/theme-chalk": "workspace:^",
+    "@zhaoye-ui/utils": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.6",
+    "typescript": "^5.1.6",
+    "vue": "^3.3.4"
+  }
 }
