@@ -1,0 +1,11 @@
+{
+  "bin": {
+    "npm-link-test": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "npm-link-test"
+  },
+  "dependencies": {
+    "echarts": "^5.4.3"
+  }
+}
