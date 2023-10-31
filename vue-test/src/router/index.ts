@@ -18,14 +18,6 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/user:afterUser(.*)',
-      name: 'AboutDetail',
-      meta: {
-        title: '详情'
-      },
-      component: () => import('../views/v-model/VModel.vue')
-    },
-    {
       path: '/:pathMatch(.*)',
       name: 'NotFound',
       meta: {
